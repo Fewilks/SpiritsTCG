@@ -364,15 +364,26 @@ ${deckText}
 
 // Start server
 async function start() {
+  console.log('--- Spirits TCG Server Starting ---');
+  console.log(`NODE_ENV: "${process.env.NODE_ENV}"`);
+  console.log(`Cwd: "${process.cwd()}"`);
+
+  // Request logger middleware
+  app.use((req, res, next) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    next();
+  });
+
   // Vite Dev integration
   if (process.env.NODE_ENV !== 'production') {
+    console.log('Using Vite Dev Middleware mode');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    // Serve static files in production
+    console.log('Using Production Static Serving mode');
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {

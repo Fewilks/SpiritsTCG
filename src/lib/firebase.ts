@@ -1,4 +1,5 @@
 import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 import { 
   getFirestore, 
   collection, 
@@ -20,6 +21,7 @@ import { Member, CardItem, LoanRecord, MatchRecord, DeckRecord } from '../types'
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Collection references
 export const membersCol = collection(db, 'members');

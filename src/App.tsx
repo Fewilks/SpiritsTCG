@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Member } from './types';
-import { db, seedDatabaseIfEmpty, membersCol } from './lib/firebase';
-import { getDocs } from 'firebase/firestore';
+import { db, seedDatabaseIfEmpty, membersCol, auth } from './lib/firebase';
+import { getDocs, getDoc, doc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import Collection from './components/Collection';
 import Loans from './components/Loans';
@@ -22,6 +24,7 @@ import {
 import PokemonSprite from './components/PokemonSprite';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [members, setMembers] = useState<Member[]>([]);
   const [currentMember, setCurrentMember] = useState<Member | null>(null);
@@ -29,9 +32,8 @@ export default function App() {
   const [showProfileSwitcher, setShowProfileSwitcher] = useState(false);
 
   // Bootstrap Firebase Firestore and retrieve members list on load
-  const loadPortalData = async () => {
+  const loadPortalData = async (userUid?: string) => {
     try {
-      setLoading(true);
       // Seed Firestore with rich demo data if empty
       await seedDatabaseIfEmpty();
 
@@ -40,18 +42,58 @@ export default function App() {
       const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
       setMembers(list);
 
-      // Default active tester session to member-1 (Guilherme - Leader)
-      const defaultUser = list.find(m => m.id === 'member-1') || list[0] || null;
-      setCurrentMember(defaultUser);
+      // Match the logged in user's ID
+      if (userUid) {
+        const matched = list.find(m => m.id === userUid);
+        if (matched) {
+          setCurrentMember(matched);
+        } else {
+          // Fallback: If no matched record yet, read the individual doc
+          const docRef = doc(db, 'members', userUid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const extraMember = { id: docSnap.id, ...docSnap.data() } as Member;
+            setCurrentMember(extraMember);
+            setMembers(prev => {
+              if (!prev.find(m => m.id === userUid)) {
+                return [...prev, extraMember];
+              }
+              return prev;
+            });
+          } else {
+            // Ultimate fallback
+            setCurrentMember(list[0] || null);
+          }
+        }
+      } else {
+        const defaultUser = list.find(m => m.id === 'member-1') || list[0] || null;
+        setCurrentMember(defaultUser);
+      }
     } catch (err) {
       console.error('Error bootstrapping Spirits portal:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPortalData();
+    // Listen for Firebase Auth state changes
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
+      try {
+        if (user) {
+          setCurrentUser(user);
+          await loadPortalData(user.uid);
+        } else {
+          setCurrentUser(null);
+          setCurrentMember(null);
+        }
+      } catch (err) {
+        console.error('Auth state change error:', err);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleSwitchProfile = (memberId: string) => {
@@ -80,6 +122,11 @@ export default function App() {
         <p className="text-slate-550 text-xs mt-2 font-mono">Conectando ao Firebase Firestore e APIs de metagame...</p>
       </div>
     );
+  }
+
+  // If no authenticated user, render the Login / Signup screen
+  if (!currentUser) {
+    return <Auth onAuthSuccess={() => {}} />;
   }
 
   const menuItems = [
@@ -180,12 +227,22 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Footer info brand */}
-        <div className="border-t border-slate-850/60 pt-4 mt-6 text-center text-[10px] text-slate-500 font-mono space-y-1">
-          <div>Spirits competitive v1.2</div>
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
-            <span className="text-emerald-400 font-bold">Firestore Sincronizado</span>
+        {/* Logout Button and Footer info brand */}
+        <div className="space-y-4 mt-auto pt-4 border-t border-slate-850/60">
+          <button
+            id="sidebar-logout-btn"
+            onClick={() => signOut(auth)}
+            className="w-full px-4 py-2 bg-slate-950/40 hover:bg-red-950/20 text-slate-400 hover:text-red-400 border border-slate-850 hover:border-red-500/20 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md group"
+          >
+            <span>Sair do Portal</span>
+          </button>
+
+          <div className="text-center text-[10px] text-slate-500 font-mono space-y-1">
+            <div>Spirits competitive v1.2</div>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span>
+              <span className="text-emerald-400 font-bold">Firestore Sincronizado</span>
+            </div>
           </div>
         </div>
 
