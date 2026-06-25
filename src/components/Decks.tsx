@@ -27,6 +27,12 @@ export default function Decks({ currentMember }: DecksProps) {
   const [decks, setDecks] = useState<DeckRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Sub-tabs: 'my' = Meus Decks, 'meta' = Limitless Meta Decks
+  const [activeTab, setActiveTab] = useState<'my' | 'meta'>('my');
+  const [metaDecks, setMetaDecks] = useState<any[]>([]);
+  const [loadingMeta, setLoadingMeta] = useState(false);
+  const [copiedDeckId, setCopiedDeckId] = useState<string | null>(null);
+
   // Import Deck State
   const [showImportModal, setShowImportModal] = useState(false);
   const [rawText, setRawText] = useState('');
@@ -70,6 +76,80 @@ export default function Decks({ currentMember }: DecksProps) {
 
     loadDecks();
   }, [currentMember]);
+
+  // Load Limitless meta decks from backend API
+  useEffect(() => {
+    async function loadMetaDecks() {
+      try {
+        setLoadingMeta(true);
+        const res = await fetch('/api/pokemon/meta');
+        if (res.ok) {
+          const data = await res.json();
+          setMetaDecks(data);
+        }
+      } catch (err) {
+        console.error('Error loading meta decks:', err);
+      } finally {
+        setLoadingMeta(false);
+      }
+    }
+    if (activeTab === 'meta') {
+      loadMetaDecks();
+    }
+  }, [activeTab]);
+
+  // Handle meta deck list copying to clipboard
+  const handleCopyMetaList = (rawList: string, deckNameStr: string) => {
+    navigator.clipboard.writeText(rawList);
+    setCopiedDeckId(deckNameStr);
+    setTimeout(() => {
+      setCopiedDeckId(null);
+    }, 2000);
+  };
+
+  // Import a Limitless meta deck directly into the member's list
+  const handleImportMetaDeck = async (metaDeck: any) => {
+    try {
+      setParsing(true);
+      
+      // Parse list to visual structure with backend Gemini endpoint
+      const res = await fetch('/api/pokemon/parse-deck', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deckText: metaDeck.rawList })
+      });
+
+      if (!res.ok) {
+        throw new Error('Falha no analisador backend');
+      }
+
+      const parsedCards: ParsedDeckCard[] = await res.json();
+      
+      const newDeck: Omit<DeckRecord, 'id'> = {
+        userId: currentMember.id,
+        userName: currentMember.name,
+        deckName: `Meta - ${metaDeck.name}`,
+        archetype: metaDeck.name,
+        rawList: metaDeck.rawList,
+        parsedCards: parsedCards,
+        createdAt: new Date().toISOString()
+      };
+
+      const docRef = await addDoc(decksCol, newDeck);
+      const importedRecord = { id: docRef.id, ...newDeck } as DeckRecord;
+      setDecks(prev => [importedRecord, ...prev]);
+      
+      // Switch back to "my" tab and focus the imported deck for visual analysis
+      setActiveTab('my');
+      setActiveDeck(importedRecord);
+      alert(`O deck "${metaDeck.name}" foi importado com sucesso para a lista de decks do time!`);
+    } catch (err) {
+      console.error('Error importing meta deck:', err);
+      alert('Erro ao importar o meta deck com inteligência artificial.');
+    } finally {
+      setParsing(false);
+    }
+  };
 
   const handleParseAndSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,10 +233,10 @@ export default function Decks({ currentMember }: DecksProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-850 pb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span>🎴</span> Meus Decks & Listas
+            <span>🎴</span> Decks & Estratégias
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Análise e cadastro inteligente de decklists. Copie diretamente do Pokémon TCG Live e obtenha uma análise visual rica!
+            Análise e cadastro inteligente de decklists. Copie diretamente do Pokémon TCG Live ou consulte os melhores do Limitless TCG!
           </p>
         </div>
         
@@ -173,241 +253,380 @@ export default function Decks({ currentMember }: DecksProps) {
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <PokemonSprite name="mewtwo" size="lg" className="animate-pulse" />
-          <p className="mt-4 text-purple-300 font-mono text-xs">Acessando decklists do time...</p>
-        </div>
-      ) : decks.length === 0 ? (
-        <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 flex flex-col items-center justify-center">
-          <div className="text-5xl mb-4">🗂️</div>
-          <h3 className="text-lg font-bold text-white">Nenhum deck cadastrado ainda!</h3>
-          <p className="text-sm text-slate-400 mt-1 max-w-sm">
-            Adicione uma lista copiada do jogo ou use um link do Limitless TCG para criar sua primeira análise.
-          </p>
-          <button
-            id="empty-decks-add"
-            onClick={() => setShowImportModal(true)}
-            className="mt-6 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-sm cursor-pointer"
-          >
-            Importar Meu Primeiro Deck
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* LEFT 1 COLUMN: Decks List */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Decks Compartilhados do Time</h2>
-            <div className="space-y-3 max-h-[75vh] overflow-y-auto pr-2">
-              {decks.map(deck => (
-                <div
-                  key={deck.id}
-                  onClick={() => setActiveDeck(deck)}
-                  className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer flex justify-between items-center ${
-                    activeDeck?.id === deck.id 
-                      ? 'bg-purple-950/40 border-purple-500/80 shadow-lg shadow-purple-950/20' 
-                      : 'bg-slate-900/60 border-slate-800/80 hover:border-purple-500/30'
-                  }`}
-                  id={`deck-item-${deck.id}`}
-                >
-                  <div className="min-w-0 flex items-center gap-3">
-                    <PokemonSprite name={deck.archetype} size="sm" />
-                    <div className="min-w-0">
-                      <h3 className="text-white font-extrabold text-sm truncate" title={deck.deckName}>{deck.deckName}</h3>
-                      <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
-                        <span className="truncate">Por: {deck.userName}</span>
-                        <span className="text-slate-650">•</span>
-                        <span className="font-mono text-purple-300 shrink-0">{deck.archetype}</span>
+      {/* Sub-tab Selection */}
+      <div className="flex border-b border-slate-800 gap-6 mt-4">
+        <button
+          onClick={() => {
+            setActiveTab('my');
+            setActiveDeck(null);
+          }}
+          className={`pb-3 text-sm font-bold transition-all cursor-pointer ${
+            activeTab === 'my' 
+              ? 'text-purple-400 border-b-2 border-purple-500' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          Decks do Time ({decks.length})
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('meta');
+            setActiveDeck(null);
+          }}
+          className={`pb-3 text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'meta' 
+              ? 'text-purple-400 border-b-2 border-purple-500' 
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Flame className="w-4 h-4 text-amber-500 animate-pulse" /> Limitless Meta Decks
+        </button>
+      </div>
+
+      {activeTab === 'my' ? (
+        loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <PokemonSprite name="mewtwo" size="lg" className="animate-pulse" />
+            <p className="mt-4 text-purple-300 font-mono text-xs">Acessando decklists do time...</p>
+          </div>
+        ) : decks.length === 0 ? (
+          <div className="text-center py-16 bg-slate-900/40 rounded-2xl border border-slate-800 p-8 flex flex-col items-center justify-center">
+            <div className="text-5xl mb-4">🗂️</div>
+            <h3 className="text-lg font-bold text-white">Nenhum deck cadastrado ainda!</h3>
+            <p className="text-sm text-slate-400 mt-1 max-w-sm">
+              Adicione uma lista copiada do jogo ou use um link do Limitless TCG para criar sua primeira análise.
+            </p>
+            <button
+              id="empty-decks-add"
+              onClick={() => setShowImportModal(true)}
+              className="mt-6 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold text-sm cursor-pointer"
+            >
+              Importar Meu Primeiro Deck
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* LEFT 1 COLUMN: Decks List */}
+            <div className="space-y-4">
+              <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Decks Compartilhados do Time</h2>
+              <div className="space-y-3 max-h-[75vh] overflow-y-auto pr-2">
+                {decks.map(deck => (
+                  <div
+                    key={deck.id}
+                    onClick={() => setActiveDeck(deck)}
+                    className={`p-4 rounded-xl border transition-all duration-300 cursor-pointer flex justify-between items-center ${
+                      activeDeck?.id === deck.id 
+                        ? 'bg-purple-950/40 border-purple-500/80 shadow-lg shadow-purple-950/20' 
+                        : 'bg-slate-900/60 border-slate-800/80 hover:border-purple-500/30'
+                    }`}
+                    id={`deck-item-${deck.id}`}
+                  >
+                    <div className="min-w-0 flex items-center gap-3">
+                      <PokemonSprite name={deck.archetype} size="sm" />
+                      <div className="min-w-0">
+                        <h3 className="text-white font-extrabold text-sm truncate" title={deck.deckName}>{deck.deckName}</h3>
+                        <div className="flex items-center gap-1.5 mt-1 text-[11px] text-slate-400">
+                          <span className="truncate">Por: {deck.userName}</span>
+                          <span className="text-slate-650">•</span>
+                          <span className="font-mono text-purple-300 shrink-0">{deck.archetype}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex gap-1.5 shrink-0">
-                    <button
-                      id={`view-deck-${deck.id}`}
-                      onClick={() => setActiveDeck(deck)}
-                      title="Ver Detalhes"
-                      className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition-colors cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                    {deck.userId === currentMember.id && (
+                    <div className="flex gap-1.5 shrink-0">
                       <button
-                        id={`delete-deck-${deck.id}`}
-                        onClick={(e) => handleDeleteDeck(deck.id, e)}
-                        title="Deletar Deck"
-                        className="p-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 rounded transition-colors cursor-pointer"
+                        id={`view-deck-${deck.id}`}
+                        onClick={() => setActiveDeck(deck)}
+                        title="Ver Detalhes"
+                        className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded transition-colors cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
-                    )}
+                      {deck.userId === currentMember.id && (
+                        <button
+                          id={`delete-deck-${deck.id}`}
+                          onClick={(e) => handleDeleteDeck(deck.id, e)}
+                          title="Deletar Deck"
+                          className="p-1.5 bg-rose-950/40 hover:bg-rose-900 text-rose-400 rounded transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* RIGHT 2 COLUMNS: Active Deck Detail view sheet */}
-          <div className="lg:col-span-2">
-            {activeDeck ? (
-              <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6 animate-fade-in" id="deck-detail-sheet">
-                
-                {/* Header info sheet */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-850 pb-5">
-                  <div className="flex items-center gap-4">
-                    <PokemonSprite name={activeDeck.archetype} size="md" />
-                    <div>
-                      <span className="text-[10px] font-mono font-bold text-purple-400 uppercase">Arquétipo: {activeDeck.archetype}</span>
-                      <h2 className="text-xl font-extrabold text-white mt-0.5">{activeDeck.deckName}</h2>
-                      <p className="text-xs text-slate-400">Cadastrado por {activeDeck.userName} em {new Date(activeDeck.createdAt).toLocaleDateString('pt-BR')}</p>
-                    </div>
-                  </div>
-
-                  {/* Deck stats pill */}
-                  <div className="flex gap-3 bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-850">
-                    <div className="text-center">
-                      <div className="text-[10px] text-slate-500 uppercase font-bold">Total</div>
-                      <div className="text-sm font-extrabold text-white font-mono">{activeDeck.parsedCards.reduce((sum, c) => sum + c.count, 0)}</div>
-                    </div>
-                    <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-slate-500 uppercase font-bold">Pokémon</div>
-                      <div className="text-sm font-extrabold text-purple-400 font-mono">
-                        {activeDeck.parsedCards.filter(c => c.type === 'Pokémon').reduce((sum, c) => sum + c.count, 0)}
-                      </div>
-                    </div>
-                    <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-slate-500 uppercase font-bold">Treinador</div>
-                      <div className="text-sm font-extrabold text-indigo-400 font-mono">
-                        {activeDeck.parsedCards.filter(c => c.type === 'Treinador').reduce((sum, c) => sum + c.count, 0)}
-                      </div>
-                    </div>
-                    <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
-                    <div className="text-center">
-                      <div className="text-[10px] text-slate-500 uppercase font-bold">Energia</div>
-                      <div className="text-sm font-extrabold text-amber-400 font-mono">
-                        {activeDeck.parsedCards.filter(c => c.type === 'Energia').reduce((sum, c) => sum + c.count, 0)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grouped card lists breakdown layout */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* RIGHT 2 COLUMNS: Active Deck Detail view sheet */}
+            <div className="lg:col-span-2">
+              {activeDeck ? (
+                <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6 animate-fade-in" id="deck-detail-sheet">
                   
-                  {/* Pokémon category list */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-purple-950 pb-1.5">
-                      <span>🐉</span> Pokémon
-                    </h3>
-                    <div className="space-y-2">
-                      {getGroupedCards(activeDeck).pokemon.map((card, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-purple-500/20 group relative">
-                          <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-white font-bold text-xs truncate">{card.name}</div>
-                            <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
-                          </div>
-                          <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
-                            x{card.count}
-                          </div>
+                  {/* Header info sheet */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-850 pb-5">
+                    <div className="flex items-center gap-4">
+                      <PokemonSprite name={activeDeck.archetype} size="md" />
+                      <div>
+                        <span className="text-[10px] font-mono font-bold text-purple-400 uppercase">Arquétipo: {activeDeck.archetype}</span>
+                        <h2 className="text-xl font-extrabold text-white mt-0.5">{activeDeck.deckName}</h2>
+                        <p className="text-xs text-slate-400">Cadastrado por {activeDeck.userName} em {new Date(activeDeck.createdAt).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                    </div>
 
-                          {/* Hover card zoom portal preview */}
-                          <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-purple-500/40 w-44">
-                            <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
-                          </div>
+                    {/* Deck stats pill */}
+                    <div className="flex gap-3 bg-slate-950/50 px-4 py-2 rounded-xl border border-slate-850">
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Total</div>
+                        <div className="text-sm font-extrabold text-white font-mono">{activeDeck.parsedCards.reduce((sum, c) => sum + c.count, 0)}</div>
+                      </div>
+                      <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Pokémon</div>
+                        <div className="text-sm font-extrabold text-purple-400 font-mono">
+                          {activeDeck.parsedCards.filter(c => c.type === 'Pokémon').reduce((sum, c) => sum + c.count, 0)}
                         </div>
-                      ))}
+                      </div>
+                      <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Treinador</div>
+                        <div className="text-sm font-extrabold text-indigo-400 font-mono">
+                          {activeDeck.parsedCards.filter(c => c.type === 'Treinador').reduce((sum, c) => sum + c.count, 0)}
+                        </div>
+                      </div>
+                      <div className="border-l border-slate-850 h-6 shrink-0 mt-1"></div>
+                      <div className="text-center">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Energia</div>
+                        <div className="text-sm font-extrabold text-amber-400 font-mono">
+                          {activeDeck.parsedCards.filter(c => c.type === 'Energia').reduce((sum, c) => sum + c.count, 0)}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Trainers category list */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-indigo-950 pb-1.5">
-                      <span>🧪</span> Treinador (Trainer)
-                    </h3>
-                    <div className="space-y-2">
-                      {getGroupedCards(activeDeck).trainers.map((card, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-indigo-500/20 group relative">
-                          <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-white font-bold text-xs truncate">{card.name}</div>
-                            <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
-                          </div>
-                          <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
-                            x{card.count}
-                          </div>
+                  {/* Grouped card lists breakdown layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    {/* Pokémon category list */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-purple-950 pb-1.5">
+                        <span>🐉</span> Pokémon
+                      </h3>
+                      <div className="space-y-2">
+                        {getGroupedCards(activeDeck).pokemon.map((card, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-purple-500/20 group relative">
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-white font-bold text-xs truncate">{card.name}</div>
+                              <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
+                            </div>
+                            <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
+                              x{card.count}
+                            </div>
 
-                          {/* Hover card zoom portal preview */}
-                          <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-indigo-500/40 w-44">
-                            <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                            {/* Hover card zoom portal preview */}
+                            <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-purple-500/40 w-44">
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+
+                    {/* Trainers category list */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-indigo-950 pb-1.5">
+                        <span>🧪</span> Treinador (Trainer)
+                      </h3>
+                      <div className="space-y-2">
+                        {getGroupedCards(activeDeck).trainers.map((card, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-indigo-500/20 group relative">
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-white font-bold text-xs truncate">{card.name}</div>
+                              <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
+                            </div>
+                            <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
+                              x{card.count}
+                            </div>
+
+                            {/* Hover card zoom portal preview */}
+                            <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-indigo-500/40 w-44">
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Energies category list */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-amber-950 pb-1.5">
+                        <span>⚡</span> Energia (Energy)
+                      </h3>
+                      <div className="space-y-2">
+                        {getGroupedCards(activeDeck).energies.map((card, idx) => (
+                          <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-amber-500/20 group relative">
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <div className="min-w-0">
+                              <div className="text-white font-bold text-xs truncate">{card.name}</div>
+                              <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
+                            </div>
+                            <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
+                              x{card.count}
+                            </div>
+
+                            {/* Hover card zoom portal preview */}
+                            <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-amber-500/40 w-44">
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                   </div>
 
-                  {/* Energies category list */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-amber-950 pb-1.5">
-                      <span>⚡</span> Energia (Energy)
-                    </h3>
-                    <div className="space-y-2">
-                      {getGroupedCards(activeDeck).energies.map((card, idx) => (
-                        <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-amber-500/20 group relative">
-                          <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
-                          <div className="min-w-0">
-                            <div className="text-white font-bold text-xs truncate">{card.name}</div>
-                            <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
-                          </div>
-                          <div className="ml-auto text-xs font-extrabold text-white font-mono bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
-                            x{card.count}
-                          </div>
-
-                          {/* Hover card zoom portal preview */}
-                          <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-amber-500/40 w-44">
-                            <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
-                          </div>
-                        </div>
-                      ))}
+                  {/* Raw format textbox code display */}
+                  <div className="space-y-2 border-t border-slate-850 pt-5">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-300 uppercase">Lista de Exportação do TCG Live</h4>
+                      <button 
+                        id="copy-text-list"
+                        onClick={() => {
+                          navigator.clipboard.writeText(activeDeck.rawList);
+                          alert('Lista copiada para a área de transferência!');
+                        }}
+                        className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-semibold cursor-pointer"
+                      >
+                        Copiar Texto
+                      </button>
                     </div>
+                    <pre className="bg-slate-950 border border-slate-850 p-4 rounded-xl text-[10px] text-slate-400 font-mono overflow-x-auto max-h-48 whitespace-pre-wrap leading-relaxed">
+                      {activeDeck.rawList}
+                    </pre>
                   </div>
 
                 </div>
-
-                {/* Raw format textbox code display */}
-                <div className="space-y-2 border-t border-slate-850 pt-5">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-300 uppercase">Lista de Exportação do TCG Live</h4>
-                    <button 
-                      id="copy-text-list"
-                      onClick={() => {
-                        navigator.clipboard.writeText(activeDeck.rawList);
-                        alert('Lista copiada para a área de transferência!');
-                      }}
-                      className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-semibold cursor-pointer"
-                    >
-                      Copiar Texto
-                    </button>
-                  </div>
-                  <pre className="bg-slate-950 border border-slate-850 p-4 rounded-xl text-[10px] text-slate-400 font-mono overflow-x-auto max-h-48 whitespace-pre-wrap leading-relaxed">
-                    {activeDeck.rawList}
-                  </pre>
+              ) : (
+                <div className="bg-slate-900/30 border border-dashed border-slate-800 rounded-2xl p-12 text-center text-slate-500" id="deck-detail-placeholder">
+                  <BookOpen className="w-12 h-12 text-slate-700 mx-auto mb-4" />
+                  <h3 className="text-white font-bold text-sm">Nenhum deck selecionado</h3>
+                  <p className="text-xs text-slate-400 mt-1">Selecione uma lista de deck do time na coluna esquerda para obter a análise visual e a distribuição de cartas.</p>
                 </div>
+              )}
+            </div>
 
-              </div>
-            ) : (
-              <div className="bg-slate-900/30 border border-dashed border-slate-800 rounded-2xl p-12 text-center text-slate-500" id="deck-detail-placeholder">
-                <BookOpen className="w-12 h-12 text-slate-700 mx-auto mb-4" />
-                <h3 className="text-white font-bold text-sm">Nenhum deck selecionado</h3>
-                <p className="text-xs text-slate-400 mt-1">Selecione uma lista de deck do time na coluna esquerda para obter a análise visual e a distribuição de cartas.</p>
-              </div>
-            )}
           </div>
+        )
+      ) : (
+        loadingMeta ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <PokemonSprite name="pikachu" size="lg" className="animate-pulse" />
+            <p className="mt-4 text-purple-300 font-mono text-xs animate-pulse">Sincronizando meta global com o Limitless TCG...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="limitless-meta-grid">
+            {metaDecks.map((deck) => (
+              <div 
+                key={deck.name} 
+                className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-500/40 transition-all duration-300 shadow-xl relative overflow-hidden group"
+              >
+                {/* Background decorative gradient */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-600/10 transition-all"></div>
+                
+                <div className="space-y-4">
+                  {/* Top Header Card */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={deck.imageUrl} 
+                        alt={deck.name} 
+                        className="w-12 h-16 object-contain drop-shadow-md rounded group-hover:scale-105 transition-transform" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <div>
+                        <h3 className="text-white font-extrabold text-base leading-snug">{deck.name}</h3>
+                        <p className="text-xs text-purple-400 font-semibold mt-0.5">{deck.archetype}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Share percent Badge */}
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Uso no Meta</span>
+                      <span className="text-sm font-black text-white font-mono">{deck.share}%</span>
+                    </div>
+                  </div>
 
-        </div>
+                  {/* Strategy Description */}
+                  <p className="text-xs text-slate-300 leading-relaxed font-sans">{deck.description}</p>
+
+                  {/* Stats section */}
+                  <div className="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Win Rate</span>
+                      <span className="text-sm font-bold text-emerald-400 font-mono">{deck.winRate}%</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Principais Cartas</span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {deck.cards.slice(0, 3).map((c: any, i: number) => (
+                          <span key={i} className="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800 font-mono" title={c.name}>
+                            {c.name.split(' (')[0]}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Usage Progress bar */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                      <span>Presença nos campeonatos</span>
+                      <span>{deck.share}%</span>
+                    </div>
+                    <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-850">
+                      <div 
+                        className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full" 
+                        style={{ width: `${deck.share * 4}%` }} 
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions bottom */}
+                <div className="flex gap-2.5 mt-5 pt-4 border-t border-slate-850">
+                  <button
+                    onClick={() => handleCopyMetaList(deck.rawList, deck.name)}
+                    className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-250 hover:text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  >
+                    {copiedDeckId === deck.name ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3.5 h-3.5" />
+                        Copiar Lista Live
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => handleImportMetaDeck(deck)}
+                    disabled={parsing}
+                    className="flex-1 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-purple-950/20 disabled:opacity-50"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    Importar para o Time
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Import Modal */}

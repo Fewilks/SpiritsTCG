@@ -55,9 +55,8 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
   // Registration specific state
   const [name, setName] = useState('');
   const [nickname, setNickname] = useState('');
-  const [role, setRole] = useState<'Membro' | 'Capitão' | 'Treinador' | 'Líder'>('Membro');
+  const [role, setRole] = useState<'pokeball' | 'greatball' | 'ultraball' | 'masterball' | 'Premium ball'>('pokeball');
   const [avatarSprite, setAvatarSprite] = useState('pikachu');
-  const [favoriteCard, setFavoriteCard] = useState('Charizard ex');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -88,11 +87,11 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           name: name.trim(),
           role: role,
           nickname: nickname.trim(),
-          avatarSprite: avatarSprite,
+          avatarSprite: avatarSprite.trim().toLowerCase() || 'pikachu',
           wins: 0,
           losses: 0,
           draws: 0,
-          favoriteCard: favoriteCard.trim() || 'Charizard ex',
+          favoriteCard: 'Charizard ex',
           favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png', // Default high-res Charizard ex
           joinDate: new Date().toISOString().split('T')[0]
         };
@@ -270,55 +269,50 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 </div>
               </div>
 
-              {/* Role & Favorite Card */}
+              {/* Role & Avatar Pokémon name input */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Cargo na Spirits</label>
+                  <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Cargo na Spirits (Bola)</label>
                   <select 
                     id="register-role"
                     value={role}
                     onChange={(e: any) => setRole(e.target.value)}
                     className="w-full bg-slate-950/50 border border-slate-800 focus:border-purple-500/50 rounded-xl py-2.5 px-3 text-xs font-medium text-white focus:outline-none transition-colors cursor-pointer"
                   >
-                    <option value="Membro">Membro</option>
-                    <option value="Treinador">Treinador</option>
-                    <option value="Capitão">Capitão</option>
-                    <option value="Líder">Líder</option>
+                    <option value="pokeball">🔴 Pokeball</option>
+                    <option value="greatball">🔵 Greatball</option>
+                    <option value="ultraball">⚫ Ultraball</option>
+                    <option value="masterball">🟣 Masterball</option>
+                    <option value="Premium ball">✨ Premium ball (Staff)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Carta Favorita</label>
+                  <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Nome do Pokémon do Avatar</label>
                   <div className="relative">
                     <Flame className="absolute left-3.5 top-3 w-4.5 h-4.5 text-slate-500" />
                     <input 
                       type="text" 
-                      id="register-favcard"
-                      placeholder="Ex: Charizard ex" 
-                      value={favoriteCard}
-                      onChange={(e) => setFavoriteCard(e.target.value)}
+                      id="register-avatar"
+                      placeholder="Ex: pikachu, gengar, mew" 
+                      value={avatarSprite}
+                      onChange={(e) => setAvatarSprite(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                       className="w-full bg-slate-950/50 border border-slate-800 focus:border-purple-500/50 rounded-xl py-2.5 pl-11 pr-4 text-xs font-medium text-white placeholder-slate-600 focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Avatar/Sprite Selection */}
-              <div>
-                <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">Selecione seu Avatar Pokémon</label>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 bg-slate-950/30 p-2 rounded-xl border border-slate-850 max-h-36 overflow-y-auto">
-                  {AVATAR_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.name}
-                      type="button"
-                      id={`avatar-option-${opt.name}`}
-                      onClick={() => setAvatarSprite(opt.name)}
-                      className={`flex flex-col items-center justify-center p-1.5 rounded-lg border transition-all ${avatarSprite === opt.name ? 'bg-purple-600/20 border-purple-500' : 'bg-slate-950/20 border-transparent hover:border-slate-800'}`}
-                    >
-                      <PokemonSprite name={opt.name} size="sm" className="w-8 h-8 scale-110" />
-                      <span className="text-[9px] text-slate-400 font-medium truncate mt-1 w-full text-center">{opt.label}</span>
-                    </button>
-                  ))}
+              {/* Live Preview card */}
+              <div className="flex items-center gap-4 bg-slate-950/40 p-3.5 rounded-xl border border-slate-850/80">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 shrink-0">
+                  <PokemonSprite name={avatarSprite || 'pikachu'} size="md" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Preview do seu Avatar Animado</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                    Digite o nome de qualquer Pokémon (em inglês, ex: <strong className="text-purple-400">gengar</strong>, <strong className="text-purple-400">charizard</strong>) e o sprite animado aparecerá! Você pode alterar seu avatar a qualquer momento na aba &quot;Sua Conta&quot;.
+                  </p>
                 </div>
               </div>
 
@@ -393,7 +387,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 'guilherme@spirits.com', 
                 'Guilherme Silva', 
                 'SpiritsBoss', 
-                'Líder', 
+                'Premium ball', 
                 'gengar-gmax', 
                 'Charizard ex'
               )}
@@ -403,7 +397,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 <PokemonSprite name="gengar-gmax" size="sm" className="w-6 h-6" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[9px] text-purple-400 font-mono font-bold">LÍDER</div>
+                <div className="text-[9px] text-purple-400 font-mono font-bold">PREMIUM BALL</div>
                 <div className="font-extrabold text-white truncate">Guilherme Silva</div>
               </div>
             </button>
@@ -415,7 +409,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 'thiago@spirits.com', 
                 'Thiago Pereira', 
                 'ThunderBolt', 
-                'Capitão', 
+                'masterball', 
                 'pikachu', 
                 'Miraidon ex'
               )}
@@ -425,7 +419,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
                 <PokemonSprite name="pikachu" size="sm" className="w-6 h-6 animate-pulse" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-[9px] text-purple-400 font-mono font-bold">CAPITÃO</div>
+                <div className="text-[9px] text-purple-400 font-mono font-bold">MASTERBALL</div>
                 <div className="font-extrabold text-white truncate">Thiago Pereira</div>
               </div>
             </button>

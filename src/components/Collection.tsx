@@ -28,11 +28,31 @@ export default function Collection({ currentMember }: CollectionProps) {
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // Sets & set selection state
+  const [sets, setSets] = useState<any[]>([]);
+  const [selectedSet, setSelectedSet] = useState('');
+  
   // Modals / forms state
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCard, setSelectedCard] = useState<any | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isLendable, setIsLendable] = useState(true);
+
+  // Load available sets from the TCG API proxy
+  useEffect(() => {
+    async function fetchSets() {
+      try {
+        const res = await fetch('/api/pokemon/sets');
+        if (res.ok) {
+          const data = await res.json();
+          setSets(data);
+        }
+      } catch (err) {
+        console.error('Error fetching sets:', err);
+      }
+    }
+    fetchSets();
+  }, []);
 
   // Load user collection
   useEffect(() => {
@@ -53,13 +73,13 @@ export default function Collection({ currentMember }: CollectionProps) {
   }, [currentMember]);
 
   // Handle live database search via backend API proxy
-  const handleDatabaseSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  const handleDatabaseSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!searchQuery.trim() && !selectedSet) return;
 
     try {
       setSearching(true);
-      const res = await fetch(`/api/pokemon/search?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/pokemon/search?q=${encodeURIComponent(searchQuery)}&set=${encodeURIComponent(selectedSet)}`);
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data);
@@ -70,6 +90,13 @@ export default function Collection({ currentMember }: CollectionProps) {
       setSearching(false);
     }
   };
+
+  // Auto-search when selected set changes (allows fast browsing of entire sets!)
+  useEffect(() => {
+    if (selectedSet) {
+      handleDatabaseSearch();
+    }
+  }, [selectedSet]);
 
   const handleOpenAdd = (card: any) => {
     setSelectedCard(card);
@@ -340,7 +367,7 @@ export default function Collection({ currentMember }: CollectionProps) {
 
             {/* Modal Search form */}
             <div className="p-5 border-b border-slate-800 bg-slate-950/50">
-              <form onSubmit={handleDatabaseSearch} className="flex gap-2">
+              <form onSubmit={handleDatabaseSearch} className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-450" />
                   <input
@@ -352,11 +379,29 @@ export default function Collection({ currentMember }: CollectionProps) {
                     className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-sans"
                   />
                 </div>
+                
+                {/* Collection Filter */}
+                <div className="w-full sm:w-56 shrink-0">
+                  <select
+                    id="modal-set-filter"
+                    value={selectedSet}
+                    onChange={(e) => setSelectedSet(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-sans cursor-pointer"
+                  >
+                    <option value="">Todas as Coleções</option>
+                    {sets.map((s: any) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.id.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <button
                   id="modal-search-submit"
                   type="submit"
                   disabled={searching}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-800 text-white rounded-lg font-semibold text-sm flex items-center gap-1.5 cursor-pointer"
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-800 text-white rounded-lg font-semibold text-sm flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                 >
                   {searching ? 'Buscando...' : 'Pesquisar'}
                 </button>

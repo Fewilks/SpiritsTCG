@@ -20,7 +20,7 @@ import { Member, CardItem, LoanRecord, MatchRecord, DeckRecord } from '../types'
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
+export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 
 // Collection references
@@ -46,7 +46,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'member-1',
         name: 'Guilherme Silva',
-        role: 'Líder',
+        role: 'Premium ball',
         nickname: 'SpiritsBoss',
         avatarSprite: 'gengar-gmax',
         wins: 42,
@@ -59,7 +59,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'member-2',
         name: 'Thiago Pereira',
-        role: 'Capitão',
+        role: 'masterball',
         nickname: 'ThunderBolt',
         avatarSprite: 'pikachu',
         wins: 38,
@@ -72,7 +72,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'member-3',
         name: 'Lucas Souza',
-        role: 'Treinador',
+        role: 'ultraball',
         nickname: 'DeckBuilder',
         avatarSprite: 'alakazam',
         wins: 29,
@@ -85,7 +85,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'member-4',
         name: 'Matheus Santos',
-        role: 'Membro',
+        role: 'pokeball',
         nickname: 'DrawPass',
         avatarSprite: 'snorlax',
         wins: 21,
@@ -98,7 +98,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'member-5',
         name: 'Felipe Costa',
-        role: 'Membro',
+        role: 'pokeball',
         nickname: 'FireBlast',
         avatarSprite: 'charizard',
         wins: 15,
@@ -342,5 +342,54 @@ Energia: 1
     console.log('Firestore Database seeded successfully!');
   } catch (error) {
     console.error('Error seeding database:', error);
+    handleFirestoreError(error, OperationType.WRITE, 'seed');
   }
 }
+
+export enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+export interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null): never {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  };
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+

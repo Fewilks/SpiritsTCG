@@ -1,7 +1,7 @@
 export interface Member {
   id: string;
   name: string;
-  role: 'Membro' | 'Capitão' | 'Treinador' | 'Líder';
+  role: 'pokeball' | 'greatball' | 'ultraball' | 'masterball' | 'Premium ball';
   nickname?: string;
   avatarSprite: string; // e.g. "pikachu", "charizard"
   wins: number;

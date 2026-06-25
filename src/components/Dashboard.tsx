@@ -3,6 +3,7 @@ import { db, membersCol, matchesCol, loansCol } from '../lib/firebase';
 import { getDocs, query, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
 import { Member, MatchRecord, LoanRecord, MetaDeck } from '../types';
 import PokemonSprite from './PokemonSprite';
+import { getRoleBadge } from '../utils';
 import { 
   TrendingUp, 
   Trophy, 
@@ -133,7 +134,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
           <div className="flex items-center gap-4 bg-slate-950/60 border border-purple-500/20 p-4 rounded-xl backdrop-blur-sm self-start md:self-auto shadow-inner">
             <PokemonSprite name={currentMember.avatarSprite} size="md" />
             <div>
-              <div className="text-[10px] text-purple-400 font-mono font-bold uppercase tracking-wider">{currentMember.role}</div>
+              <div className="mb-1">{getRoleBadge(currentMember.role)}</div>
               <div className="text-white font-extrabold text-sm">{currentMember.name}</div>
               <div className="text-xs text-slate-400 font-mono">Streak: {currentMember.wins}W - {currentMember.losses}L</div>
             </div>

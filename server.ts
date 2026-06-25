@@ -41,35 +41,133 @@ const metaDecks = [
       { name: 'Pidgeot ex (OBF 225)', count: 2 },
       { name: 'Arven (SVI 166)', count: 4 },
       { name: 'Iono (PAF 80)', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 19
+4 Charmander OBF 26
+1 Charmeleon OBF 124
+3 Charizard ex OBF 125
+2 Pidgey MEW 16
+2 Pidgeot ex OBF 225
+1 Rotom V LOR 58
+1 Lumineon V BRS 40
+1 Manaphy BRS 41
+1 Radiant Charizard PGO 11
+1 Fezandipiti ex TWM 96
+1 Jirachi PAR 126
+1 Duskull SFA 18
+
+Trainer: 35
+4 Arven SVI 166
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+1 Professor's Research SVI 190
+1 Briar SCR 132
+4 Buddy-Buddy Poffin TEF 144
+4 Ultra Ball SVI 196
+4 Rare Candy SVI 191
+2 Super Rod PAL 188
+1 Nest Ball SVI 181
+1 Counter Catcher PAR 160
+1 Pal Pad SVI 182
+1 Hisuian Heavy Ball ASR 146
+1 Sparkling Crystal SCR 142
+1 Defiance Band SVI 169
+1 Forest Seal Stone SIT 156
+1 Collapsed Stadium BRS 137
+1 Gravity Mountain SFA 74
+
+Energy: 6
+6 Basic Fire Energy SVE 2`
   },
   {
     name: 'Regidrago VSTAR',
     archetype: 'Regidrago VSTAR / Teal Mask Ogerpon',
     share: 14.5,
     winRate: 53.8,
-    imageUrl: 'https://images.pokemontcg.io/swsh12-136.png',
+    imageUrl: 'https://images.pokemontcg.io/sit-136.png',
     description: 'Extremamente versátil. Usa o ataque Apex Dragon para copiar ataques de qualquer dragão no descarte (como Giratina VSTAR ou Noivern ex), energizado rapidamente por Teal Mask Ogerpon ex.',
     cards: [
       { name: 'Regidrago VSTAR (SIT 136)', count: 3 },
       { name: 'Teal Mask Ogerpon ex (TWM 25)', count: 4 },
       { name: 'Energy Switch (SVI 173)', count: 4 },
       { name: 'Professor Sada\'s Vitality', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 17
+3 Regidrago V SIT 135
+3 Regidrago VSTAR SIT 136
+3 Teal Mask Ogerpon ex TWM 25
+1 Giratina VSTAR LOR 131
+1 Noivern ex PAF 69
+1 Haxorus TWM 156
+1 Dragapult ex TWM 130
+1 Kyurem SFA 47
+1 Mew ex MEW 151
+1 Radiant Charizard PGO 11
+1 Fezandipiti ex TWM 96
+
+Trainer: 31
+4 Professor Sada's Vitality PAR 170
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+4 Ultra Ball SVI 196
+4 Nest Ball SVI 181
+4 Energy Switch SVI 173
+4 Earthen Vessel PAR 163
+2 Super Rod PAL 188
+1 Superior Energy Retrieval PAL 189
+1 Prime Catcher TEF 157
+1 Pokégear 3.0 SVI 186
+1 Lost Vacuum LOR 162
+
+Energy: 12
+6 Basic Grass Energy SVE 1
+3 Basic Fire Energy SVE 2
+3 Basic Psychic Energy SVE 13`
   },
   {
     name: 'Raging Bolt ex',
     archetype: 'Raging Bolt ex / Teal Mask Ogerpon',
     share: 13.2,
     winRate: 52.9,
-    imageUrl: 'https://images.pokemontcg.io/sv6-123.png',
+    imageUrl: 'https://images.pokemontcg.io/tef-123.png',
     description: 'Dano explosivo ilimitado. Descarta energias em jogo para causar 70 de dano por energia, utilizando Ogerpon para acelerar energias de Grama e puxar cartas adicionais.',
     cards: [
       { name: 'Raging Bolt ex (TEF 123)', count: 4 },
       { name: 'Teal Mask Ogerpon ex (TWM 25)', count: 4 },
       { name: 'Professor Sada\'s Vitality (PAR 170)', count: 4 },
       { name: 'Earthen Vessel (PAR 163)', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 12
+4 Raging Bolt ex TEF 123
+4 Teal Mask Ogerpon ex TWM 25
+1 Radiant Greninja ASR 46
+1 Fezandipiti ex TWM 96
+1 Flutter Mane TEF 78
+1 Sandy Shocks ex PAR 108
+
+Trainer: 35
+4 Professor Sada's Vitality PAR 170
+2 Iono PAF 80
+1 Boss's Orders PAL 172
+4 Earthen Vessel PAR 163
+4 Nest Ball SVI 181
+4 Ultra Ball SVI 196
+3 Pokégear 3.0 SVI 186
+2 Energy Switch SVI 173
+2 Bravery Charm PAL 173
+1 Prime Catcher TEF 157
+1 Superior Energy Retrieval PAL 189
+1 Super Rod PAL 188
+1 Lost Vacuum LOR 162
+1 Pal Pad SVI 182
+1 Night Stretcher SFA 61
+1 Squawkabilly ex PAF 75
+4 Pokeball SVI 196
+
+Energy: 13
+6 Basic Grass Energy SVE 1
+4 Basic Lightning Energy SVE 4
+3 Basic Fighting Energy SVE 6`
   },
   {
     name: 'Gardevoir ex',
@@ -83,7 +181,40 @@ const metaDecks = [
       { name: 'Kirlia (SIT 68)', count: 4 },
       { name: 'Arven (SVI 166)', count: 4 },
       { name: 'Iono (PAF 80)', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 20
+3 Ralts ASR 60
+1 Ralts SIT 67
+4 Kirlia SIT 68
+2 Gardevoir ex SVI 86
+1 Drifloon SVI 89
+1 Scream Tail PAR 86
+1 Munkidori TWM 95
+1 Flutter Mane TEF 78
+1 Klefki SVI 96
+1 Manaphy BRS 41
+1 Radiant Greninja ASR 46
+1 Fezandipiti ex TWM 96
+
+Trainer: 31
+4 Arven SVI 166
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+1 Professor's Research SVI 190
+4 Buddy-Buddy Poffin TEF 144
+3 Ultra Ball SVI 196
+2 Super Rod PAL 188
+2 Nest Ball SVI 181
+2 Bravery Charm PAL 173
+1 Counter Catcher PAR 160
+1 Earthen Vessel PAR 163
+1 Technical Machine: Evolution PAR 178
+1 Hero's Cape TEF 152
+1 Lost Vacuum LOR 162
+1 Night Stretcher SFA 61
+
+Energy: 9
+9 Basic Psychic Energy SVE 13`
   },
   {
     name: 'Lugia VSTAR',
@@ -97,21 +228,75 @@ const metaDecks = [
       { name: 'Archeops (SIT 147)', count: 3 },
       { name: 'Cinccino (TEF 137)', count: 3 },
       { name: 'Double Turbo Energy (BRS 151)', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 16
+3 Lugia V SIT 138
+3 Lugia VSTAR SIT 139
+4 Archeops SIT 147
+3 Minccino TEF 136
+3 Cinccino TEF 137
+
+Trainer: 28
+4 Professor's Research SVI 190
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+2 Carmine TWM 145
+4 Ultra Ball SVI 196
+4 Great Ball SVI 183
+4 Capturing Aroma SIT 153
+2 Nest Ball SVI 181
+1 Super Rod PAL 188
+1 Jamming Tower TWM 153
+2 Collapsed Stadium BRS 137
+
+Energy: 16
+4 Jet Energy PAL 190
+4 Double Turbo Energy BRS 151
+4 Gift Energy LOR 171
+4 Mist Energy TEF 161`
   },
   {
     name: 'Roaring Moon ex',
     archetype: 'Roaring Moon ex / Baby Moon',
     share: 7.9,
     winRate: 51.1,
-    imageUrl: 'https://images.pokemontcg.io/sv4-124.png',
+    imageUrl: 'https://images.pokemontcg.io/par-124.png',
     description: 'Velocidade e agressividade. Roaring Moon ex possui um ataque de nocaute instantâneo e outro que causa 220 de dano. Pode atacar logo no turno 1.',
     cards: [
       { name: 'Roaring Moon ex (PAR 124)', count: 3 },
       { name: 'Roaring Moon (TEF 109)', count: 3 },
       { name: 'Professor Sada\'s Vitality (PAR 170)', count: 4 },
       { name: 'Dark Patch (ASR 139)', count: 4 }
-    ]
+    ],
+    rawList: `Pokémon: 13
+3 Roaring Moon ex PAR 124
+3 Roaring Moon TEF 109
+1 Squawkabilly ex PAF 75
+1 Fezandipiti ex TWM 96
+1 Radiant Greninja ASR 46
+1 Pecharunt ex SFA 39
+1 Morpeko PAR 121
+2 Pokeball SVI 196
+
+Trainer: 36
+4 Professor Sada's Vitality PAR 170
+2 Iono PAF 80
+1 Boss's Orders PAL 172
+4 Dark Patch ASR 139
+4 Nest Ball SVI 181
+4 Ultra Ball SVI 196
+4 Earthen Vessel PAR 163
+3 Pokégear 3.0 SVI 186
+3 Night Stretcher SFA 61
+2 Ancient Booster Energy Capsule PAR 156
+1 PokéStop OBf 193
+1 Prime Catcher TEF 157
+1 Super Rod PAL 188
+2 Night Wanderer SFA 62
+
+Energy: 11
+9 Basic Darkness Energy SVE 15
+2 Double Turbo Energy BRS 151`
   }
 ];
 
@@ -184,15 +369,26 @@ app.get('/api/pokemon/meta', (req, res) => {
 
 // Search Pokémon cards via pokemontcg.io with local fallbacks
 app.get('/api/pokemon/search', async (req, res) => {
-  const queryParam = req.query.q as string;
-  if (!queryParam) {
+  const queryParam = (req.query.q as string) || '';
+  const setParam = (req.query.set as string) || '';
+
+  if (!queryParam && !setParam) {
     return res.json([]);
   }
 
   try {
-    console.log(`Searching cards for: "${queryParam}"`);
-    const encodedQuery = encodeURIComponent(`name:"*${queryParam}*"`);
-    const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodedQuery}&pageSize=24`);
+    let qString = '';
+    if (queryParam) {
+      qString += `name:"*${queryParam}*"`;
+    }
+    if (setParam) {
+      if (qString) qString += ' ';
+      qString += `set.id:${setParam}`;
+    }
+
+    console.log(`Searching cards for: q="${queryParam}" set="${setParam}" -> query="${qString}"`);
+    const encodedQuery = encodeURIComponent(qString);
+    const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodedQuery}&pageSize=36`);
     
     if (response.ok) {
       const data = await response.json();
@@ -212,10 +408,44 @@ app.get('/api/pokemon/search', async (req, res) => {
     console.error('External API failed, falling back to local list:', error);
   }
 
-  // Local fallback search
-  const lowerQuery = queryParam.toLowerCase();
-  const matched = fallbackCards.filter(c => c.name.toLowerCase().includes(lowerQuery));
-  res.json(matched);
+  // Local fallback search (matches only on name if q is specified)
+  if (queryParam) {
+    const lowerQuery = queryParam.toLowerCase();
+    const matched = fallbackCards.filter(c => c.name.toLowerCase().includes(lowerQuery));
+    return res.json(matched);
+  }
+  res.json([]);
+});
+
+// Fetch all available Pokémon TCG sets
+app.get('/api/pokemon/sets', async (req, res) => {
+  try {
+    const response = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
+    if (response.ok) {
+      const data = await response.json();
+      const formatted = data.data.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        series: s.series,
+        releaseDate: s.releaseDate,
+        logo: s.images.logo,
+        symbol: s.images.symbol
+      }));
+      return res.json(formatted);
+    }
+  } catch (err) {
+    console.error('Error fetching sets from pokemontcg.io:', err);
+  }
+  // Return robust, modern fallbacks if it fails
+  res.json([
+    { id: 'sv6', name: 'Twilight Masquerade', series: 'Scarlet & Violet' },
+    { id: 'sv5', name: 'Temporal Forces', series: 'Scarlet & Violet' },
+    { id: 'sv45', name: 'Paldean Fates', series: 'Scarlet & Violet' },
+    { id: 'sv4', name: 'Paradox Rift', series: 'Scarlet & Violet' },
+    { id: 'sv3', name: 'Obsidian Flames', series: 'Scarlet & Violet' },
+    { id: 'sv2', name: 'Paldea Evolved', series: 'Scarlet & Violet' },
+    { id: 'sv1', name: 'Scarlet & Violet', series: 'Scarlet & Violet' }
+  ]);
 });
 
 // Parse TCG Live / Limitless text lists using Gemini (with advanced Regex fallback)

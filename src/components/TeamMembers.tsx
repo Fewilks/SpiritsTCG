@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, membersCol } from '../lib/firebase';
 import { getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { Member } from '../types';
+import { getRoleBadge } from '../utils';
 import { 
   PlusCircle, 
   X, 
@@ -13,7 +14,8 @@ import {
   ShieldCheck, 
   Heart,
   ChevronRight,
-  UserCheck
+  UserCheck,
+  Settings
 } from 'lucide-react';
 import PokemonSprite from './PokemonSprite';
 
@@ -21,30 +23,35 @@ interface TeamMembersProps {
   currentMember: Member;
   setCurrentMember: (member: Member) => void;
   onMemberUpdated: () => void;
+  currentUserEmail?: string;
 }
 
-export default function TeamMembers({ currentMember, setCurrentMember, onMemberUpdated }: TeamMembersProps) {
+export default function TeamMembers({ currentMember, setCurrentMember, onMemberUpdated, currentUserEmail = '' }: TeamMembersProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Permission check
+  const hasStaffPermission = currentMember.role === 'Premium ball' || currentUserEmail === 'felipewilks@gmail.com';
 
   // Form modals state
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // Custom Role switcher modal for staff
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [selectedNewRole, setSelectedNewRole] = useState<'pokeball' | 'greatball' | 'ultraball' | 'masterball' | 'Premium ball'>('pokeball');
 
   // Add Teammate form states
   const [name, setName] = useState('');
-  const [role, setRole] = useState<'Membro' | 'Capitão' | 'Treinador' | 'Líder'>('Membro');
+  const [role, setRole] = useState<'pokeball' | 'greatball' | 'ultraball' | 'masterball' | 'Premium ball'>('pokeball');
   const [nickname, setNickname] = useState('');
   const [avatarSprite, setAvatarSprite] = useState('pikachu');
-  const [favoriteCard, setFavoriteCard] = useState('');
-  const [favoriteCardImage, setFavoriteCardImage] = useState('');
   const [registering, setRegistering] = useState(false);
 
   // Edit form states
   const [editNickname, setEditNickname] = useState(currentMember.nickname || '');
   const [editAvatarSprite, setEditAvatarSprite] = useState(currentMember.avatarSprite || 'pikachu');
-  const [editFavoriteCard, setEditFavoriteCard] = useState(currentMember.favoriteCard || '');
-  const [editFavoriteCardImage, setEditFavoriteCardImage] = useState(currentMember.favoriteCardImage || '');
 
   // Popular representative avatar suggestions
   const avatarOptions = [
@@ -98,12 +105,12 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
         name: name.trim(),
         role: role,
         nickname: nickname.trim() || undefined,
-        avatarSprite: avatarSprite,
+        avatarSprite: avatarSprite.trim().toLowerCase() || 'pikachu',
         wins: 0,
         losses: 0,
         draws: 0,
-        favoriteCard: favoriteCard.trim() || undefined,
-        favoriteCardImage: favoriteCardImage.trim() || undefined,
+        favoriteCard: 'Charizard ex',
+        favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
         joinDate: new Date().toISOString().split('T')[0]
       };
 
@@ -114,8 +121,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
       // Reset fields
       setName('');
       setNickname('');
-      setFavoriteCard('');
-      setFavoriteCardImage('');
+      setAvatarSprite('pikachu');
 
       alert(`Boas-vindas ao novo Spirits member: ${newMember.name}!`);
     } catch (err) {
@@ -132,9 +138,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
       const pRef = doc(db, 'members', currentMember.id);
       const updatedFields = {
         nickname: editNickname.trim() || undefined,
-        avatarSprite: editAvatarSprite,
-        favoriteCard: editFavoriteCard.trim() || undefined,
-        favoriteCardImage: editFavoriteCardImage.trim() || undefined
+        avatarSprite: editAvatarSprite.trim().toLowerCase() || 'pikachu'
       };
 
       await updateDoc(pRef, updatedFields);
@@ -150,6 +154,29 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
       alert('Seu perfil de jogador foi atualizado com sucesso!');
     } catch (err) {
       console.error('Error updating player profile:', err);
+    }
+  };
+
+  const handleUpdateMemberRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember) return;
+
+    try {
+      const pRef = doc(db, 'members', editingMember.id);
+      await updateDoc(pRef, { role: selectedNewRole });
+
+      // If we updated ourselves, sync active user context
+      if (editingMember.id === currentMember.id) {
+        setCurrentMember({ ...currentMember, role: selectedNewRole });
+      }
+
+      setShowRoleModal(false);
+      setEditingMember(null);
+      fetchMembers();
+      onMemberUpdated();
+      alert(`Cargo de ${editingMember.name} atualizado para ${selectedNewRole}!`);
+    } catch (err) {
+      console.error('Error updating member role:', err);
     }
   };
 
@@ -179,8 +206,6 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
             onClick={() => {
               setEditNickname(currentMember.nickname || '');
               setEditAvatarSprite(currentMember.avatarSprite || 'pikachu');
-              setEditFavoriteCard(currentMember.favoriteCard || '');
-              setEditFavoriteCardImage(currentMember.favoriteCardImage || '');
               setShowEditModal(true);
             }}
             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold text-sm flex items-center gap-2 border border-slate-700 cursor-pointer transition-all"
@@ -236,10 +261,24 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                     </div>
                     <p className="text-xs text-purple-400 font-semibold mt-0.5">{mem.nickname ? `@${mem.nickname}` : 'Sem apelido'}</p>
                     
-                    {/* Role tag */}
-                    <span className="inline-block text-[9px] font-bold text-slate-300 bg-slate-850 border border-slate-800 rounded px-1.5 py-0.5 mt-1.5">
-                      🛡️ {mem.role}
-                    </span>
+                    {/* Role tag & edit */}
+                    <div className="mt-1.5 flex flex-wrap gap-1.5 items-center">
+                      {getRoleBadge(mem.role)}
+                      
+                      {hasStaffPermission && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMember(mem);
+                            setSelectedNewRole(mem.role as any);
+                            setShowRoleModal(true);
+                          }}
+                          className="text-[9px] text-purple-400 hover:text-purple-300 font-bold transition-all flex items-center gap-0.5 bg-slate-950/40 hover:bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded cursor-pointer"
+                        >
+                          <Settings className="w-3 h-3 text-purple-400" /> Cargo
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -311,7 +350,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
             {/* Form */}
             <form onSubmit={handleRegisterMember} className="p-6 overflow-y-auto space-y-4 flex-1">
               
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-300 uppercase">Nome Completo:</label>
                   <input
@@ -326,17 +365,21 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Cargo / Role:</label>
+                  <label className="block text-xs font-bold text-slate-300 uppercase">
+                    Cargo / Bola: {!hasStaffPermission && <span className="text-red-400 font-bold text-[10px]">(Apenas Staff)</span>}
+                  </label>
                   <select
                     id="member-role-select"
                     value={role}
+                    disabled={!hasStaffPermission}
                     onChange={(e) => setRole(e.target.value as any)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
+                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none disabled:opacity-50 cursor-pointer"
                   >
-                    <option value="Membro">Membro</option>
-                    <option value="Capitão">Capitão</option>
-                    <option value="Treinador">Treinador</option>
-                    <option value="Líder">Líder</option>
+                    <option value="pokeball">🔴 Pokeball</option>
+                    <option value="greatball">🔵 Greatball</option>
+                    <option value="ultraball">⚫ Ultraball</option>
+                    <option value="masterball">🟣 Masterball</option>
+                    <option value="Premium ball">✨ Premium ball (Staff)</option>
                   </select>
                 </div>
               </div>
@@ -353,52 +396,29 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 />
               </div>
 
-              {/* Avatar options suggest list */}
+              {/* Dynamic Search Sprite Selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-300 uppercase">Selecione seu Pokémon Representativo (Sprite Animado):</label>
-                <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto bg-slate-950 p-3 rounded-xl border border-slate-850">
-                  {avatarOptions.map(opt => (
-                    <div
-                      key={opt.id}
-                      onClick={() => setAvatarSprite(opt.id)}
-                      className={`p-1.5 rounded-lg border text-center cursor-pointer transition-all ${
-                        avatarSprite === opt.id 
-                          ? 'bg-purple-950/60 border-purple-500 text-white' 
-                          : 'bg-slate-900/40 border-slate-850 hover:border-slate-700 text-slate-400'
-                      }`}
-                      id={`opt-avatar-${opt.id}`}
-                    >
-                      <PokemonSprite name={opt.id} size="sm" className="mx-auto" />
-                      <div className="text-[9px] mt-1 font-semibold truncate">{opt.name}</div>
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-xs font-bold text-slate-300 uppercase">Pokémon do Avatar (Digite o nome):</label>
+                <input 
+                  type="text" 
+                  id="member-avatar"
+                  placeholder="Ex: pikachu, mew, charizard" 
+                  value={avatarSprite}
+                  onChange={(e) => setAvatarSprite(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none placeholder-slate-600"
+                />
               </div>
 
-              {/* Favorite card options */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Carta Pokémon Favorita:</label>
-                  <input
-                    id="member-favcard-input"
-                    type="text"
-                    placeholder="ex: Charizard ex"
-                    value={favoriteCard}
-                    onChange={(e) => setFavoriteCard(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                  />
+              {/* Live Preview Card */}
+              <div className="flex items-center gap-4 bg-slate-950/40 p-3.5 rounded-xl border border-slate-850/80">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 shrink-0">
+                  <PokemonSprite name={avatarSprite || 'pikachu'} size="md" />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Link da Imagem da Carta (Opcional):</label>
-                  <input
-                    id="member-favimg-input"
-                    type="text"
-                    placeholder="Cole um link ou deixe vazio"
-                    value={favoriteCardImage}
-                    onChange={(e) => setFavoriteCardImage(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                  />
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Preview do Avatar Animado</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                    O sprite do Pokémon acima se ajustará instantaneamente conforme você digita. Use nomes em inglês.
+                  </p>
                 </div>
               </div>
 
@@ -452,52 +472,29 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 />
               </div>
 
-              {/* Avatar options suggest list */}
+              {/* Dynamic Search Sprite Selection */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-300 uppercase">Altere seu Pokémon Representativo (Sprite Animado):</label>
-                <div className="grid grid-cols-5 gap-2 max-h-36 overflow-y-auto bg-slate-950 p-3 rounded-xl border border-slate-850">
-                  {avatarOptions.map(opt => (
-                    <div
-                      key={opt.id}
-                      onClick={() => setEditAvatarSprite(opt.id)}
-                      className={`p-1.5 rounded-lg border text-center cursor-pointer transition-all ${
-                        editAvatarSprite === opt.id 
-                          ? 'bg-purple-950/60 border-purple-500 text-white' 
-                          : 'bg-slate-900/40 border-slate-850 hover:border-slate-700 text-slate-400'
-                      }`}
-                      id={`edit-opt-avatar-${opt.id}`}
-                    >
-                      <PokemonSprite name={opt.id} size="sm" className="mx-auto" />
-                      <div className="text-[9px] mt-1 font-semibold truncate">{opt.name}</div>
-                    </div>
-                  ))}
-                </div>
+                <label className="block text-xs font-bold text-slate-300 uppercase">Pokémon do Avatar (Digite o nome):</label>
+                <input 
+                  type="text" 
+                  id="edit-member-avatar"
+                  placeholder="Ex: pikachu, mew, charizard" 
+                  value={editAvatarSprite}
+                  onChange={(e) => setEditAvatarSprite(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none placeholder-slate-600"
+                />
               </div>
 
-              {/* Favorite card options */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Sua Carta Pokémon Favorita:</label>
-                  <input
-                    id="edit-favcard-input"
-                    type="text"
-                    placeholder="ex: Miraidon ex"
-                    value={editFavoriteCard}
-                    onChange={(e) => setEditFavoriteCard(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                  />
+              {/* Live Preview Card */}
+              <div className="flex items-center gap-4 bg-slate-950/40 p-3.5 rounded-xl border border-slate-850/80">
+                <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800 shrink-0">
+                  <PokemonSprite name={editAvatarSprite || 'pikachu'} size="md" />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Link da Imagem da Carta:</label>
-                  <input
-                    id="edit-favimg-input"
-                    type="text"
-                    placeholder="Cole um link de imagem"
-                    value={editFavoriteCardImage}
-                    onChange={(e) => setEditFavoriteCardImage(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                  />
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Preview do Avatar Animado</h4>
+                  <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">
+                    O sprite do Pokémon acima se ajustará instantaneamente conforme você digita. Use nomes de Pokémon em inglês.
+                  </p>
                 </div>
               </div>
 
@@ -509,6 +506,68 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 Salvar Alterações no Meu Perfil
               </button>
 
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* Staff Role Switcher Modal */}
+      {showRoleModal && editingMember && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" id="change-role-modal">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            
+            {/* Header */}
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-purple-900/40 to-slate-900">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-purple-400 animate-spin-slow" />
+                <h3 className="text-base font-bold text-white">Alterar Nível / Cargo</h3>
+              </div>
+              <button 
+                id="close-role-modal-x"
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setEditingMember(null);
+                }}
+                className="text-slate-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleUpdateMemberRole} className="p-6 space-y-4">
+              <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                <PokemonSprite name={editingMember.avatarSprite} size="sm" />
+                <div>
+                  <h4 className="text-sm font-bold text-white">{editingMember.name}</h4>
+                  <p className="text-[10px] text-slate-400">Cargo Atual: {editingMember.role}</p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-300 uppercase">Selecione o Novo Cargo (Bola):</label>
+                <select
+                  id="staff-role-select"
+                  value={selectedNewRole}
+                  onChange={(e) => setSelectedNewRole(e.target.value as any)}
+                  className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none cursor-pointer"
+                >
+                  <option value="pokeball">🔴 Pokeball</option>
+                  <option value="greatball">🔵 Greatball</option>
+                  <option value="ultraball">⚫ Ultraball</option>
+                  <option value="masterball">🟣 Masterball</option>
+                  <option value="Premium ball">✨ Premium ball (Staff)</option>
+                </select>
+              </div>
+
+              <button
+                id="btn-submit-change-role"
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg"
+              >
+                Atualizar Cargo do Membro
+              </button>
             </form>
 
           </div>

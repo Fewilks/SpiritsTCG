@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PokemonSpriteProps {
   name: string;
@@ -42,6 +42,11 @@ export const getPokemonSpriteUrl = (pokemonName: string): string => {
 export default function PokemonSprite({ name, className = '', size = 'md' }: PokemonSpriteProps) {
   const [src, setSrc] = useState<string>(getPokemonSpriteUrl(name));
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setSrc(getPokemonSpriteUrl(name));
+    setHasError(false);
+  }, [name]);
 
   const sizeClasses = {
     sm: 'w-8 h-8',
