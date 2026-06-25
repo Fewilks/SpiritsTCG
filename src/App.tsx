@@ -10,6 +10,8 @@ import Loans from './components/Loans';
 import Matches from './components/Matches';
 import Decks from './components/Decks';
 import TeamMembers from './components/TeamMembers';
+import MyProfile from './components/MyProfile';
+import RoleLock from './components/RoleLock';
 import { 
   Trophy, 
   Swords, 
@@ -19,10 +21,22 @@ import {
   Sparkles,
   ChevronDown,
   LayoutDashboard,
-  HelpCircle
+  HelpCircle,
+  User,
+  Lock
 } from 'lucide-react';
 import PokemonSprite from './components/PokemonSprite';
 import { getRoleBadge } from './utils';
+
+export function getRoleRankValue(role: string): number {
+  const normalized = (role || '').toLowerCase().replace(/\s+/g, '');
+  if (normalized === 'pokeball') return 1;
+  if (normalized === 'greatball') return 2;
+  if (normalized === 'ultraball') return 3;
+  if (normalized === 'masterball') return 4;
+  if (normalized === 'premiumball') return 5;
+  return 1;
+}
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -111,8 +125,6 @@ export default function App() {
               wins: 0,
               losses: 0,
               draws: 0,
-              favoriteCard: 'Charizard ex',
-              favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
               joinDate: new Date().toISOString().split('T')[0]
             };
             await setDoc(docRef, newMember);
@@ -190,12 +202,13 @@ export default function App() {
   }
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'colecao', label: 'Minha Coleção', icon: Layers },
-    { id: 'emprestimos', label: 'Empréstimos', icon: ArrowLeftRight },
-    { id: 'partidas', label: 'Partidas', icon: Swords },
-    { id: 'decks', label: 'Meus Decks', icon: Trophy },
-    { id: 'time', label: 'Time Spirits', icon: Users },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, minRank: 1 },
+    { id: 'colecao', label: 'Minha Coleção', icon: Layers, minRank: 2 },
+    { id: 'emprestimos', label: 'Empréstimos', icon: ArrowLeftRight, minRank: 3 },
+    { id: 'partidas', label: 'Partidas', icon: Swords, minRank: 3 },
+    { id: 'decks', label: 'Meus Decks', icon: Trophy, minRank: 1 },
+    { id: 'perfil', label: 'Meu Perfil', icon: User, minRank: 1 },
+    { id: 'time', label: 'Time Spirits', icon: Users, minRank: 1 },
   ];
 
   return (
@@ -265,6 +278,9 @@ export default function App() {
             {menuItems.map(item => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
+              const userRankVal = currentMember ? getRoleRankValue(currentMember.role) : 1;
+              const isLocked = item.minRank ? userRankVal < item.minRank : false;
+
               return (
                 <button
                   key={item.id}
@@ -273,14 +289,21 @@ export default function App() {
                     setActiveTab(item.id);
                     setShowProfileSwitcher(false);
                   }}
-                  className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer group ${
+                  className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer group ${
                     isActive 
                       ? 'bg-gradient-to-r from-purple-950/40 to-indigo-950/10 text-purple-350 border-l-4 border-purple-500 font-extrabold shadow-md shadow-purple-950/20' 
-                      : 'text-slate-400 hover:bg-slate-850/60 hover:text-slate-200'
+                      : isLocked
+                        ? 'text-slate-550 hover:bg-slate-850/30'
+                        : 'text-slate-400 hover:bg-slate-850/60 hover:text-slate-200'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-purple-400' : 'text-slate-500'}`} />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-purple-400' : isLocked ? 'text-slate-650' : 'text-slate-500'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {isLocked && (
+                    <Lock className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                  )}
                 </button>
               );
             })}
@@ -313,10 +336,56 @@ export default function App() {
         {currentMember ? (
           <div>
             {activeTab === 'dashboard' && <Dashboard currentMember={currentMember} setActiveTab={setActiveTab} />}
-            {activeTab === 'colecao' && <Collection currentMember={currentMember} />}
-            {activeTab === 'emprestimos' && <Loans currentMember={currentMember} />}
-            {activeTab === 'partidas' && <Matches currentMember={currentMember} />}
+            
+            {activeTab === 'colecao' && (
+              getRoleRankValue(currentMember.role) >= 2 ? (
+                <Collection currentMember={currentMember} />
+              ) : (
+                <RoleLock 
+                  currentMember={currentMember} 
+                  requiredRole="greatball" 
+                  featureName="Gerenciamento de Coleção" 
+                  onGoToProfile={() => setActiveTab('perfil')} 
+                />
+              )
+            )}
+            
+            {activeTab === 'emprestimos' && (
+              getRoleRankValue(currentMember.role) >= 3 ? (
+                <Loans currentMember={currentMember} />
+              ) : (
+                <RoleLock 
+                  currentMember={currentMember} 
+                  requiredRole="ultraball" 
+                  featureName="Sistema de Empréstimos" 
+                  onGoToProfile={() => setActiveTab('perfil')} 
+                />
+              )
+            )}
+            
+            {activeTab === 'partidas' && (
+              getRoleRankValue(currentMember.role) >= 3 ? (
+                <Matches currentMember={currentMember} />
+              ) : (
+                <RoleLock 
+                  currentMember={currentMember} 
+                  requiredRole="ultraball" 
+                  featureName="Registro de Partidas" 
+                  onGoToProfile={() => setActiveTab('perfil')} 
+                />
+              )
+            )}
+            
             {activeTab === 'decks' && <Decks currentMember={currentMember} />}
+            
+            {activeTab === 'perfil' && (
+              <MyProfile 
+                currentMember={currentMember} 
+                setCurrentMember={setCurrentMember} 
+                onMemberUpdated={loadPortalData} 
+              />
+            )}
+            
             {activeTab === 'time' && (
               <TeamMembers 
                 currentMember={currentMember} 
@@ -372,8 +441,6 @@ export default function App() {
                     wins: 0,
                     losses: 0,
                     draws: 0,
-                    favoriteCard: 'Charizard ex',
-                    favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
                     joinDate: new Date().toISOString().split('T')[0]
                   };
                   setCurrentMember(placeholderMember);

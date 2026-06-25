@@ -1,7 +1,4 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
 import { 
-  getFirestore, 
   collection, 
   doc, 
   getDocs, 
@@ -15,13 +12,10 @@ import {
   limit,
   onSnapshot
 } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
 import { Member, CardItem, LoanRecord, MatchRecord, DeckRecord } from '../types';
+import { db, auth } from './firebase-config';
+export { db, auth };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-export const auth = getAuth(app);
 
 // Collection references
 export const membersCol = collection(db, 'members');

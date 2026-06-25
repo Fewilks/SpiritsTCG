@@ -91,8 +91,6 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           wins: 0,
           losses: 0,
           draws: 0,
-          favoriteCard: 'Charizard ex',
-          favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png', // Default high-res Charizard ex
           joinDate: new Date().toISOString().split('T')[0]
         };
 
