@@ -30,33 +30,29 @@ app.use(express.json());
 // 1. Meta Decks list (simulating Limitless TCG live meta)
 const metaDecks = [
   {
-    name: 'Charizard ex',
-    archetype: 'Charizard ex / Pidgeot ex',
-    share: 16.8,
-    winRate: 54.2,
-    imageUrl: 'https://images.pokemontcg.io/sv3-125.png',
-    description: 'O deck mais resiliente do formato. Utiliza a habilidade do Pidgeot ex para buscar qualquer carta e o poder de ataque crescente do Charizard ex conforme o oponente pega cartas de prêmio.',
+    name: 'Pikachu ex',
+    archetype: 'Pikachu ex / Latias ex / Magneton',
+    share: 18.2,
+    winRate: 55.4,
+    imageUrl: 'https://images.pokemontcg.io/sv8-54.png',
+    description: 'O deck do momento após Surging Sparks. Pikachu ex bate 300 de dano e previne nocaute com vida cheia (habilidade Resolute Heart), energizado instantaneamente pela habilidade Overcharge do Magneton.',
     cards: [
-      { name: 'Charizard ex (OBF 125)', count: 3 },
-      { name: 'Pidgeot ex (OBF 225)', count: 2 },
-      { name: 'Arven (SVI 166)', count: 4 },
-      { name: 'Iono (PAF 80)', count: 4 }
+      { name: 'Pikachu ex (SSP 054)', count: 3 },
+      { name: 'Latias ex (SSP 076)', count: 1 },
+      { name: 'Magneton (SSP 052)', count: 3 },
+      { name: 'Briar (SCR 132)', count: 1 }
     ],
-    rawList: `Pokémon: 19
-4 Charmander OBF 26
-1 Charmeleon OBF 124
-3 Charizard ex OBF 125
-2 Pidgey MEW 16
-2 Pidgeot ex OBF 225
-1 Rotom V LOR 58
-1 Lumineon V BRS 40
-1 Manaphy BRS 41
-1 Radiant Charizard PGO 11
+    rawList: `Pokémon: 16
+4 Magnemite SSP 51
+3 Magneton SSP 52
+3 Pikachu ex SSP 54
+1 Latias ex SSP 76
+2 Rotom V LOR 58
 1 Fezandipiti ex TWM 96
-1 Jirachi PAR 126
-1 Duskull SFA 18
+1 Lumineon V BRS 40
+1 Mew ex MEW 151
 
-Trainer: 35
+Trainer: 32
 4 Arven SVI 166
 3 Iono PAF 80
 2 Boss's Orders PAL 172
@@ -64,20 +60,15 @@ Trainer: 35
 1 Briar SCR 132
 4 Buddy-Buddy Poffin TEF 144
 4 Ultra Ball SVI 196
-4 Rare Candy SVI 191
+4 Nest Ball SVI 181
 2 Super Rod PAL 188
-1 Nest Ball SVI 181
-1 Counter Catcher PAR 160
-1 Pal Pad SVI 182
-1 Hisuian Heavy Ball ASR 146
-1 Sparkling Crystal SCR 142
-1 Defiance Band SVI 169
-1 Forest Seal Stone SIT 156
-1 Collapsed Stadium BRS 137
+3 Electric Generator SVI 162
+1 Prime Catcher TEF 157
 1 Gravity Mountain SFA 74
+2 Sparking Crystal SCR 142
 
-Energy: 6
-6 Basic Fire Energy SVE 2`
+Energy: 12
+12 Basic Lightning Energy SVE 4`
   },
   {
     name: 'Regidrago VSTAR',
@@ -170,133 +161,129 @@ Energy: 13
 3 Basic Fighting Energy SVE 6`
   },
   {
-    name: 'Gardevoir ex',
-    archetype: 'Gardevoir ex / Drifloon / Munkidori',
-    share: 10.1,
-    winRate: 51.5,
-    imageUrl: 'https://images.pokemontcg.io/sv1-86.png',
-    description: 'Estratégia focada em controle de danos e cura. Anexa múltiplas energias psíquicas do descarte aos seus atacantes de um prêmio (como Drifloon ou Scream Tail) para nocautear Pokémons ex oponentes.',
+    name: 'Terapagos ex',
+    archetype: 'Terapagos ex / Pidgeot ex / Dusknoir',
+    share: 15.1,
+    winRate: 53.6,
+    imageUrl: 'https://images.pokemontcg.io/scr-128.png',
+    description: 'Utiliza Area Zero Underdepths para expandir o banco para 8 Pokémons, aumentando o dano do Unified Beatdown de Terapagos ex para 240. Dusknoir oferece nocautes surpresa com Cursed Blast.',
     cards: [
-      { name: 'Gardevoir ex (SVI 86)', count: 2 },
-      { name: 'Kirlia (SIT 68)', count: 4 },
-      { name: 'Arven (SVI 166)', count: 4 },
-      { name: 'Iono (PAF 80)', count: 4 }
+      { name: 'Terapagos ex (SCR 128)', count: 3 },
+      { name: 'Pidgeot ex (OBF 225)', count: 2 },
+      { name: 'Dusknoir (SFA 20)', count: 2 },
+      { name: 'Area Zero Underdepths (SCR 131)', count: 3 }
     ],
-    rawList: `Pokémon: 20
-3 Ralts ASR 60
-1 Ralts SIT 67
-4 Kirlia SIT 68
-2 Gardevoir ex SVI 86
-1 Drifloon SVI 89
-1 Scream Tail PAR 86
-1 Munkidori TWM 95
-1 Flutter Mane TEF 78
-1 Klefki SVI 96
-1 Manaphy BRS 41
+    rawList: `Pokémon: 18
+3 Terapagos ex SCR 128
+2 Pidgey MEW 16
+2 Pidgeot ex OBF 225
+3 Duskull SFA 18
+1 Dusclops SFA 19
+2 Dusknoir SFA 20
+2 Rotom V LOR 58
+1 Fezandipiti ex TWM 96
+1 Radiant Alakazam SIT 59
+2 Bouffalant SSP 145
+
+Trainer: 30
+4 Arven SVI 166
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+4 Area Zero Underdepths SCR 131
+4 Buddy-Buddy Poffin TEF 144
+4 Nest Ball SVI 181
+4 Rare Candy SVI 191
+2 Super Rod PAL 188
+1 Prime Catcher TEF 157
+1 Counter Catcher PAR 160
+1 Defiance Band SVI 169
+
+Energy: 12
+4 Double Turbo Energy BRS 151
+8 Basic Water Energy SVE 3`
+  },
+  {
+    name: 'Ceruledge ex',
+    archetype: 'Ceruledge ex / Dusknoir / Pecharunt',
+    share: 12.8,
+    winRate: 52.8,
+    imageUrl: 'https://images.pokemontcg.io/ssp-34.png',
+    description: 'Descarte em massa de energias usando Earthen Vessel e Professor Sada. O ataque de Ceruledge ex causa 30 de dano para cada energia na pilha de descarte, atingindo números avassaladores rapidamente.',
+    cards: [
+      { name: 'Ceruledge ex (SSP 034)', count: 4 },
+      { name: 'Dusknoir (SFA 20)', count: 2 },
+      { name: 'Earthen Vessel (PAR 163)', count: 4 },
+      { name: 'Professor Sada\'s Vitality', count: 4 }
+    ],
+    rawList: `Pokémon: 15
+4 Charcadet SSP 33
+4 Ceruledge ex SSP 34
+2 Duskull SFA 18
+2 Dusknoir SFA 20
 1 Radiant Greninja ASR 46
 1 Fezandipiti ex TWM 96
+1 Pecharunt ex SFA 39
+
+Trainer: 33
+4 Professor Sada's Vitality PAR 170
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+4 Earthen Vessel PAR 163
+4 Ultra Ball SVI 196
+4 Nest Ball SVI 181
+4 Trekking Shoes ASR 156
+3 Pokégear 3.0 SVI 186
+1 Prime Catcher TEF 157
+1 Super Rod PAL 188
+1 Night Stretcher SFA 61
+2 PokéStop OBF 193
+
+Energy: 12
+12 Basic Fire Energy SVE 2`
+  },
+  {
+    name: 'Dragapult ex',
+    archetype: 'Dragapult ex / Pidgeot ex',
+    share: 10.4,
+    winRate: 51.9,
+    imageUrl: 'https://images.pokemontcg.io/twm-130.png',
+    description: 'Dano cirúrgico. Com o ataque Phantom Dive, causa 200 de dano no ativo e distribui 6 contadores de dano no banco adversário. Pidgeot ex oferece busca irrestrita.',
+    cards: [
+      { name: 'Dragapult ex (TWM 130)', count: 3 },
+      { name: 'Pidgeot ex (OBF 225)', count: 2 },
+      { name: 'Arven (SVI 166)', count: 4 },
+      { name: 'Rare Candy (SVI 191)', count: 4 }
+    ],
+    rawList: `Pokémon: 19
+3 Dreepy TWM 128
+1 Drakloak TWM 129
+3 Dragapult ex TWM 130
+2 Pidgey MEW 16
+2 Pidgeot ex OBF 225
+2 Rotom V LOR 58
+1 Fezandipiti ex TWM 96
+1 Manaphy BRS 41
+1 Radiant Alakazam SIT 59
+2 Duskull SFA 18
+1 Dusknoir SFA 20
 
 Trainer: 31
 4 Arven SVI 166
 3 Iono PAF 80
 2 Boss's Orders PAL 172
-1 Professor's Research SVI 190
+4 Rare Candy SVI 191
 4 Buddy-Buddy Poffin TEF 144
-3 Ultra Ball SVI 196
+4 Ultra Ball SVI 196
+3 Nest Ball SVI 181
 2 Super Rod PAL 188
-2 Nest Ball SVI 181
-2 Bravery Charm PAL 173
-1 Counter Catcher PAR 160
-1 Earthen Vessel PAR 163
-1 Technical Machine: Evolution PAR 178
-1 Hero's Cape TEF 152
-1 Lost Vacuum LOR 162
-1 Night Stretcher SFA 61
-
-Energy: 9
-9 Basic Psychic Energy SVE 13`
-  },
-  {
-    name: 'Lugia VSTAR',
-    archetype: 'Lugia VSTAR / Archeops / Cinccino',
-    share: 8.4,
-    winRate: 50.8,
-    imageUrl: 'https://images.pokemontcg.io/sit-139.png',
-    description: 'Invoca múltiplos Archeops diretamente do descarte para o banco usando o poder VSTAR da Lugia. Cinccino ataca com energias especiais causando danos astronômicos.',
-    cards: [
-      { name: 'Lugia VSTAR (SIT 139)', count: 3 },
-      { name: 'Archeops (SIT 147)', count: 3 },
-      { name: 'Cinccino (TEF 137)', count: 3 },
-      { name: 'Double Turbo Energy (BRS 151)', count: 4 }
-    ],
-    rawList: `Pokémon: 16
-3 Lugia V SIT 138
-3 Lugia VSTAR SIT 139
-4 Archeops SIT 147
-3 Minccino TEF 136
-3 Cinccino TEF 137
-
-Trainer: 28
-4 Professor's Research SVI 190
-3 Iono PAF 80
-2 Boss's Orders PAL 172
-2 Carmine TWM 145
-4 Ultra Ball SVI 196
-4 Great Ball SVI 183
-4 Capturing Aroma SIT 153
-2 Nest Ball SVI 181
-1 Super Rod PAL 188
-1 Jamming Tower TWM 153
-2 Collapsed Stadium BRS 137
-
-Energy: 16
-4 Jet Energy PAL 190
-4 Double Turbo Energy BRS 151
-4 Gift Energy LOR 171
-4 Mist Energy TEF 161`
-  },
-  {
-    name: 'Roaring Moon ex',
-    archetype: 'Roaring Moon ex / Baby Moon',
-    share: 7.9,
-    winRate: 51.1,
-    imageUrl: 'https://images.pokemontcg.io/par-124.png',
-    description: 'Velocidade e agressividade. Roaring Moon ex possui um ataque de nocaute instantâneo e outro que causa 220 de dano. Pode atacar logo no turno 1.',
-    cards: [
-      { name: 'Roaring Moon ex (PAR 124)', count: 3 },
-      { name: 'Roaring Moon (TEF 109)', count: 3 },
-      { name: 'Professor Sada\'s Vitality (PAR 170)', count: 4 },
-      { name: 'Dark Patch (ASR 139)', count: 4 }
-    ],
-    rawList: `Pokémon: 13
-3 Roaring Moon ex PAR 124
-3 Roaring Moon TEF 109
-1 Squawkabilly ex PAF 75
-1 Fezandipiti ex TWM 96
-1 Radiant Greninja ASR 46
-1 Pecharunt ex SFA 39
-1 Morpeko PAR 121
-2 Pokeball SVI 196
-
-Trainer: 36
-4 Professor Sada's Vitality PAR 170
-2 Iono PAF 80
-1 Boss's Orders PAL 172
-4 Dark Patch ASR 139
-4 Nest Ball SVI 181
-4 Ultra Ball SVI 196
-4 Earthen Vessel PAR 163
-3 Pokégear 3.0 SVI 186
-3 Night Stretcher SFA 61
-2 Ancient Booster Energy Capsule PAR 156
-1 PokéStop OBf 193
 1 Prime Catcher TEF 157
-1 Super Rod PAL 188
-2 Night Wanderer SFA 62
+1 Counter Catcher PAR 160
+1 Technical Machine: Devolution PAR 177
+2 Area Zero Underdepths SCR 131
 
-Energy: 11
-9 Basic Darkness Energy SVE 15
-2 Double Turbo Energy BRS 151`
+Energy: 10
+4 Basic Fire Energy SVE 2
+6 Basic Psychic Energy SVE 13`
   }
 ];
 

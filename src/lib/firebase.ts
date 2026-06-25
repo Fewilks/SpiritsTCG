@@ -38,10 +38,10 @@ export async function seedDatabaseIfEmpty() {
     // 1. Members Seeding
     const defaultMembers: Member[] = [
       {
-        id: 'member-1',
-        name: 'Guilherme Silva',
+        id: 'member-felipe',
+        name: 'Felipe Wilks',
         role: 'Premium ball',
-        nickname: 'SpiritsBoss',
+        nickname: 'felipewilks',
         avatarSprite: 'gengar-gmax',
         wins: 42,
         losses: 18,
@@ -49,58 +49,6 @@ export async function seedDatabaseIfEmpty() {
         favoriteCard: 'Charizard ex',
         favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
         joinDate: '2025-01-10'
-      },
-      {
-        id: 'member-2',
-        name: 'Thiago Pereira',
-        role: 'masterball',
-        nickname: 'ThunderBolt',
-        avatarSprite: 'pikachu',
-        wins: 38,
-        losses: 20,
-        draws: 8,
-        favoriteCard: 'Miraidon ex',
-        favoriteCardImage: 'https://images.pokemontcg.io/sv1-81_hires.png',
-        joinDate: '2025-01-15'
-      },
-      {
-        id: 'member-3',
-        name: 'Lucas Souza',
-        role: 'ultraball',
-        nickname: 'DeckBuilder',
-        avatarSprite: 'alakazam',
-        wins: 29,
-        losses: 15,
-        draws: 4,
-        favoriteCard: 'Gardevoir ex',
-        favoriteCardImage: 'https://images.pokemontcg.io/sv1-86_hires.png',
-        joinDate: '2025-02-01'
-      },
-      {
-        id: 'member-4',
-        name: 'Matheus Santos',
-        role: 'pokeball',
-        nickname: 'DrawPass',
-        avatarSprite: 'snorlax',
-        wins: 21,
-        losses: 25,
-        draws: 3,
-        favoriteCard: 'Snorlax',
-        favoriteCardImage: 'https://images.pokemontcg.io/pgo-55_hires.png',
-        joinDate: '2025-02-15'
-      },
-      {
-        id: 'member-5',
-        name: 'Felipe Costa',
-        role: 'pokeball',
-        nickname: 'FireBlast',
-        avatarSprite: 'charizard',
-        wins: 15,
-        losses: 18,
-        draws: 2,
-        favoriteCard: 'Charizard ex',
-        favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
-        joinDate: '2025-03-01'
       }
     ];
 

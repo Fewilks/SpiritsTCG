@@ -95,14 +95,12 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
 
   const currentRankVal = getRoleRankValue(role);
 
-  const perks = [
-    { id: 'dashboard', label: 'Acesso ao Dashboard', minRank: 1, minRankLabel: 'Pokéball', icon: LayoutDashboard },
-    { id: 'time', label: 'Roster de Treinadores', minRank: 1, minRankLabel: 'Pokéball', icon: User },
-    { id: 'colecao', label: 'Gerenciar Minha Coleção', minRank: 2, minRankLabel: 'Greatball', icon: Layers },
-    { id: 'partidas', label: 'Registrar e Listar Partidas', minRank: 3, minRankLabel: 'Ultraball', icon: Swords },
-    { id: 'emprestimos', label: 'Solicitar Empréstimos', minRank: 3, minRankLabel: 'Ultraball', icon: ArrowLeftRight },
-    { id: 'decks_edit', label: 'Criar Decks Públicos', minRank: 4, minRankLabel: 'Masterball', icon: Trophy },
-    { id: 'staff_actions', label: 'Ferramentas de Staff (Mudar cargos, cadastrar membros)', minRank: 5, minRankLabel: 'Premium ball', icon: Award },
+  const levelsList = [
+    { id: 'pokeball', label: 'Level Pokéball', points: '0 - 29 pts', desc: 'Iniciante competitivo. Classificação inicial de pontuação ao entrar no Spirits.', color: 'border-red-500/20 text-red-450 bg-red-950/10' },
+    { id: 'greatball', label: 'Level Greatball', points: '30 - 59 pts', desc: 'Membro regular. Participação ativa em torneios internos e treinos.', color: 'border-blue-500/20 text-blue-400 bg-blue-950/10' },
+    { id: 'ultraball', label: 'Level Ultraball', points: '60 - 99 pts', desc: 'Competitivo core. Alto engajamento, conquistas de vitórias consistentes.', color: 'border-yellow-500/30 text-yellow-400 bg-slate-900' },
+    { id: 'masterball', label: 'Level Masterball', points: '100 - 149 pts', desc: 'Elite Pro. Jogador de alto nível técnico com alto saldo de vitórias.', color: 'border-purple-500/30 text-purple-400 bg-purple-950/10' },
+    { id: 'premiumball', label: 'Level Premium ball', points: '150+ pts', desc: 'Staff / Lenda. Administradores e líderes do portal competitivo.', color: 'border-amber-500/50 text-amber-300 bg-slate-900' },
   ];
 
   return (
@@ -113,7 +111,7 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
           <span>⚙️</span> Configurações do Meu Perfil
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Gerencie suas informações de jogador, selecione seu Pokémon de estimação como avatar animado e simule novos cargos competitivos.
+          Gerencie suas informações de jogador, selecione seu Pokémon de estimação como avatar animado e acompanhe sua evolução de pontuação interna.
         </p>
       </div>
 
@@ -195,20 +193,20 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
 
               {/* Simulation Rank Selector */}
               <div className="space-y-1.5">
-                <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nível / Categoria de Acesso (Simulação)</label>
+                <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Meu Level / Evolução Competitiva</label>
                 <select 
                   id="profile-edit-role"
                   value={role}
                   onChange={(e: any) => setRole(e.target.value)}
                   className="w-full bg-slate-950/60 border border-slate-850 focus:border-purple-500/50 rounded-xl py-2.5 px-3 text-xs font-medium text-white focus:outline-none transition-colors cursor-pointer"
                 >
-                  <option value="pokeball">🔴 Pokéball (Iniciante)</option>
-                  <option value="greatball">🔵 Greatball (Membro Regular)</option>
-                  <option value="ultraball">⚫ Ultraball (Competitivo Core)</option>
-                  <option value="masterball">🟣 Masterball (Elite Pro)</option>
-                  <option value="Premium ball">✨ Premium ball (Staff do Portal)</option>
+                  <option value="pokeball">🔴 Level Pokéball (0 - 29 pts)</option>
+                  <option value="greatball">🔵 Level Greatball (30 - 59 pts)</option>
+                  <option value="ultraball">⚫ Level Ultraball (60 - 99 pts)</option>
+                  <option value="masterball">🟣 Level Masterball (100 - 149 pts)</option>
+                  <option value="Premium ball">✨ Level Premium (150+ pts ou Staff)</option>
                 </select>
-                <p className="text-[10px] text-slate-500 font-mono mt-1">Troque livremente para avaliar as permissões de acesso de cada cargo.</p>
+                <p className="text-[10px] text-slate-550 font-mono mt-1">Sinaliza seu progresso acumulado em partidas oficiais e eventos internos do time.</p>
               </div>
             </div>
 
@@ -230,7 +228,7 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
               type="submit"
               id="profile-save-btn"
               disabled={saving}
-              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-950/30 border border-purple-500/20"
+              className="w-full bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-600 hover:to-indigo-600 disabled:from-slate-800 disabled:to-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-purple-950/30 border border-purple-500/20"
             >
               {saving ? (
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -249,53 +247,41 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
           <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6" id="access-level-guide">
             <h3 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-850 pb-3 mb-4">
               <Award className="w-4.5 h-4.5 text-purple-400" />
-              Níveis de Acesso por Cargo
+              Evolução & Classificação Interna
             </h3>
 
             <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              O portal Spirits TCG emprega regras de cargo para delimitar recursos. Cada esfera representa um nível de progresso e privilégios competitivos:
+              Os níveis de Pokébola indicam a pontuação competitiva e o engajamento acumulado de cada mestre no Spirits TCG. Eles **não limitam o uso de recursos do portal**, servindo puramente para classificação de progresso:
             </p>
 
             <div className="space-y-4">
-              {perks.map((perk) => {
-                const isUnlocked = currentRankVal >= perk.minRank;
-                const Icon = perk.icon;
+              {levelsList.map((lvl) => {
+                const isActive = role === lvl.id;
                 return (
                   <div 
-                    key={perk.id}
-                    className={`p-3.5 rounded-xl border flex items-start gap-3 transition-all ${
-                      isUnlocked 
-                        ? 'bg-purple-950/10 border-purple-500/20 text-slate-100' 
-                        : 'bg-slate-950/20 border-slate-850 text-slate-500'
+                    key={lvl.id}
+                    className={`p-3.5 rounded-xl border flex flex-col gap-1 transition-all ${
+                      isActive 
+                        ? 'bg-purple-950/20 border-purple-500/40 text-slate-100 ring-1 ring-purple-500/20' 
+                        : 'bg-slate-950/20 border-slate-850/60 text-slate-300'
                     }`}
                   >
-                    <div className={`p-1.5 rounded-lg shrink-0 ${isUnlocked ? 'bg-purple-900/30 text-purple-400' : 'bg-slate-950 text-slate-600'}`}>
-                      <Icon className="w-4 h-4" />
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold leading-none">{lvl.label}</span>
+                      <span className="text-[10px] font-mono font-bold text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded-full">{lvl.points}</span>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold leading-none">{perk.label}</span>
-                        {isUnlocked ? (
-                          <span className="text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1 py-0.5 rounded uppercase font-bold shrink-0">Ativo</span>
-                        ) : (
-                          <span className="text-[8px] bg-slate-900 text-slate-600 border border-slate-850 px-1 py-0.5 rounded uppercase font-bold shrink-0 flex items-center gap-0.5">
-                            <Lock className="w-2 h-2" /> Bloqueado
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[9px] text-slate-400 mt-1">
-                        Requer: <strong className="text-slate-300">{perk.minRankLabel}</strong>
-                      </p>
-                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1 leading-relaxed">
+                      {lvl.desc}
+                    </p>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-5 bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 text-[10px] text-slate-400 leading-relaxed flex gap-2.5">
+            <div className="mt-5 bg-slate-950/50 p-3.5 rounded-xl border border-slate-850 text-[10px] text-slate-455 leading-relaxed flex gap-2.5">
               <TrendingUp className="w-5 h-5 text-purple-400 shrink-0" />
               <span>
-                <strong>Quer subir de rank?</strong> Você pode testar e simular todos os comportamentos de segurança do sistema trocando o cargo no formulário ao lado.
+                <strong>Como pontuar:</strong> Cada vitória em partidas do time ou torneios oficiais soma **3 pontos**, empates somam **1 ponto**, e derrotas somam **0 pontos**.
               </span>
             </div>
           </div>

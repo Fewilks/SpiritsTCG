@@ -275,7 +275,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                           }}
                           className="text-[9px] text-purple-400 hover:text-purple-300 font-bold transition-all flex items-center gap-0.5 bg-slate-950/40 hover:bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded cursor-pointer"
                         >
-                          <Settings className="w-3 h-3 text-purple-400" /> Cargo
+                          <Settings className="w-3 h-3 text-purple-400" /> Level
                         </button>
                       )}
                     </div>
@@ -366,7 +366,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
 
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-300 uppercase">
-                    Cargo / Bola: {!hasStaffPermission && <span className="text-red-400 font-bold text-[10px]">(Apenas Staff)</span>}
+                    Level / Classificação: {!hasStaffPermission && <span className="text-red-400 font-bold text-[10px]">(Apenas Staff)</span>}
                   </label>
                   <select
                     id="member-role-select"
@@ -375,11 +375,11 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                     onChange={(e) => setRole(e.target.value as any)}
                     className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none disabled:opacity-50 cursor-pointer"
                   >
-                    <option value="pokeball">🔴 Pokeball</option>
-                    <option value="greatball">🔵 Greatball</option>
-                    <option value="ultraball">⚫ Ultraball</option>
-                    <option value="masterball">🟣 Masterball</option>
-                    <option value="Premium ball">✨ Premium ball (Staff)</option>
+                    <option value="pokeball">🔴 Level Pokéball</option>
+                    <option value="greatball">🔵 Level Greatball</option>
+                    <option value="ultraball">⚫ Level Ultraball</option>
+                    <option value="masterball">🟣 Level Masterball</option>
+                    <option value="Premium ball">✨ Level Premium (Staff)</option>
                   </select>
                 </div>
               </div>
@@ -521,7 +521,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
             <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-purple-900/40 to-slate-900">
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5 text-purple-400 animate-spin-slow" />
-                <h3 className="text-base font-bold text-white">Alterar Nível / Cargo</h3>
+                <h3 className="text-base font-bold text-white">Alterar Level / Classificação</h3>
               </div>
               <button 
                 id="close-role-modal-x"
@@ -541,23 +541,23 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 <PokemonSprite name={editingMember.avatarSprite} size="sm" />
                 <div>
                   <h4 className="text-sm font-bold text-white">{editingMember.name}</h4>
-                  <p className="text-[10px] text-slate-400">Cargo Atual: {editingMember.role}</p>
+                  <p className="text-[10px] text-slate-400">Level Atual: {editingMember.role}</p>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-300 uppercase">Selecione o Novo Cargo (Bola):</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase">Selecione o Novo Level:</label>
                 <select
                   id="staff-role-select"
                   value={selectedNewRole}
                   onChange={(e) => setSelectedNewRole(e.target.value as any)}
                   className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none cursor-pointer"
                 >
-                  <option value="pokeball">🔴 Pokeball</option>
-                  <option value="greatball">🔵 Greatball</option>
-                  <option value="ultraball">⚫ Ultraball</option>
-                  <option value="masterball">🟣 Masterball</option>
-                  <option value="Premium ball">✨ Premium ball (Staff)</option>
+                  <option value="pokeball">🔴 Level Pokéball</option>
+                  <option value="greatball">🔵 Level Greatball</option>
+                  <option value="ultraball">⚫ Level Ultraball</option>
+                  <option value="masterball">🟣 Level Masterball</option>
+                  <option value="Premium ball">✨ Level Premium (Staff)</option>
                 </select>
               </div>
 
@@ -566,7 +566,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                 type="submit"
                 className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg"
               >
-                Atualizar Cargo do Membro
+                Atualizar Level do Membro
               </button>
             </form>
 

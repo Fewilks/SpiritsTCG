@@ -64,10 +64,8 @@ export default function App() {
 
         // If no direct UID match, try matching by demo emails to merge accounts
         if (!matched) {
-          if (currentUserEmail.includes('guilherme')) {
-            matched = list.find(m => m.id === 'member-1' || m.nickname === 'SpiritsBoss' || m.name.toLowerCase().includes('guilherme'));
-          } else if (currentUserEmail.includes('thiago')) {
-            matched = list.find(m => m.id === 'member-2' || m.nickname === 'ThunderBolt' || m.name.toLowerCase().includes('thiago'));
+          if (currentUserEmail.includes('felipe') || currentUserEmail.includes('wilks')) {
+            matched = list.find(m => m.id === 'member-felipe' || m.nickname === 'felipewilks' || m.name.toLowerCase().includes('felipe'));
           } else {
             // General match by name/email handle
             const localPart = currentUserEmail.split('@')[0];
@@ -138,7 +136,7 @@ export default function App() {
           }
         }
       } else {
-        const defaultUser = list.find(m => m.id === 'member-1') || list[0] || null;
+        const defaultUser = list.find(m => m.id === 'member-felipe') || list[0] || null;
         setCurrentMember(defaultUser);
       }
     } catch (err) {
@@ -220,8 +218,22 @@ export default function App() {
         <div className="space-y-6">
           {/* Spirits Team Branding Brand Header */}
           <div className="flex items-center gap-3 border-b border-slate-850/60 pb-5">
-            <div className="w-10 h-10 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-xl flex items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 shrink-0 animate-pulse">
-              <span className="text-2xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]">👻</span>
+            <div className="w-10 h-10 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-xl flex items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 shrink-0 overflow-hidden relative">
+              <img 
+                src="/logo-spirits.png" 
+                alt="Spirits Logo" 
+                className="w-full h-full object-contain p-1"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent && !parent.querySelector('.fallback-emoji')) {
+                    const span = document.createElement('span');
+                    span.className = 'text-2xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] fallback-emoji';
+                    span.innerText = '👻';
+                    parent.appendChild(span);
+                  }
+                }}
+              />
             </div>
             <div>
               <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-1">
@@ -233,43 +245,16 @@ export default function App() {
 
           {/* Active Player Context profile indicator */}
           {currentMember && (
-            <div className="relative">
-              <div 
-                id="active-profile-trigger"
-                onClick={() => setShowProfileSwitcher(!showProfileSwitcher)}
-                className="bg-slate-950/40 hover:bg-slate-950/80 p-3 rounded-xl border border-slate-850/80 hover:border-purple-500/30 transition-all cursor-pointer flex items-center justify-between shadow-inner"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 bg-slate-900/80 rounded-lg border border-slate-800 shrink-0 flex items-center justify-center overflow-hidden">
-                    <PokemonSprite name={currentMember.avatarSprite} size="sm" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="mb-0.5">{getRoleBadge(currentMember.role)}</div>
-                    <div className="text-white font-black text-xs truncate">{currentMember.nickname || currentMember.name}</div>
-                  </div>
+            <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-850/80 flex items-center justify-between shadow-inner">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 bg-slate-900/80 rounded-lg border border-slate-800 shrink-0 flex items-center justify-center overflow-hidden">
+                  <PokemonSprite name={currentMember.avatarSprite} size="sm" />
                 </div>
-                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showProfileSwitcher ? 'rotate-180' : ''}`} />
+                <div className="min-w-0">
+                  <div className="mb-0.5">{getRoleBadge(currentMember.role)}</div>
+                  <div className="text-white font-black text-xs truncate">{currentMember.nickname || currentMember.name}</div>
+                </div>
               </div>
-
-              {/* Profile selector dropdown options */}
-              {showProfileSwitcher && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 py-1.5 overflow-hidden divide-y divide-slate-850 max-h-56 overflow-y-auto backdrop-blur-md">
-                  <div className="px-3 py-1 text-[9px] text-slate-500 font-bold uppercase">Simular outro Membro:</div>
-                  {members.map(mem => (
-                    <button
-                      key={mem.id}
-                      id={`switch-to-${mem.id}`}
-                      onClick={() => handleSwitchProfile(mem.id)}
-                      className={`w-full px-3 py-2 text-left text-xs font-semibold hover:bg-slate-950 flex items-center gap-2 ${
-                        mem.id === currentMember.id ? 'text-purple-400 bg-slate-950/50' : 'text-slate-300'
-                      } cursor-pointer`}
-                    >
-                      <PokemonSprite name={mem.avatarSprite} size="sm" className="w-5 h-5 shrink-0" />
-                      <span className="truncate">{mem.name}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
@@ -278,8 +263,7 @@ export default function App() {
             {menuItems.map(item => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-              const userRankVal = currentMember ? getRoleRankValue(currentMember.role) : 1;
-              const isLocked = item.minRank ? userRankVal < item.minRank : false;
+              const isLocked = false;
 
               return (
                 <button
@@ -287,23 +271,17 @@ export default function App() {
                   id={`nav-tab-${item.id}`}
                   onClick={() => {
                     setActiveTab(item.id);
-                    setShowProfileSwitcher(false);
                   }}
                   className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer group ${
                     isActive 
                       ? 'bg-gradient-to-r from-purple-950/40 to-indigo-950/10 text-purple-350 border-l-4 border-purple-500 font-extrabold shadow-md shadow-purple-950/20' 
-                      : isLocked
-                        ? 'text-slate-550 hover:bg-slate-850/30'
-                        : 'text-slate-400 hover:bg-slate-850/60 hover:text-slate-200'
+                      : 'text-slate-400 hover:bg-slate-850/60 hover:text-slate-200'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-purple-400' : isLocked ? 'text-slate-650' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${isActive ? 'text-purple-400' : 'text-slate-550'}`} />
                     <span>{item.label}</span>
                   </div>
-                  {isLocked && (
-                    <Lock className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-                  )}
                 </button>
               );
             })}

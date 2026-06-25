@@ -4,6 +4,7 @@ import { getDocs, query, orderBy, limit, doc, updateDoc } from 'firebase/firesto
 import { Member, MatchRecord, LoanRecord, MetaDeck } from '../types';
 import PokemonSprite from './PokemonSprite';
 import { getRoleBadge } from '../utils';
+import { getArchetypeSprites } from './Matches';
 import { 
   TrendingUp, 
   Trophy, 
@@ -288,13 +289,29 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
                         <PokemonSprite name={match.player1Sprite} size="sm" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-white font-extrabold text-sm">{match.player1Name}</span>
                           <span className="text-[10px] text-purple-400 font-mono bg-purple-950/40 px-1.5 py-0.5 rounded">({match.deckArchetype})</span>
+                          {/* Highlighted icons */}
+                          <div className="flex -space-x-1.5">
+                            {getArchetypeSprites(match.deckArchetype).map((spriteName, idx) => (
+                              <div key={idx} className="w-5.5 h-5.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shadow">
+                                <PokemonSprite name={spriteName} size="sm" className="w-4 h-4 scale-110" />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <div className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                        <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5 flex-wrap">
                           vs <span className="text-slate-300 font-semibold">{match.player2Name}</span>
                           <span className="text-[10px] bg-slate-900/80 px-1.5 py-0.5 rounded font-mono text-slate-500">({match.opponentDeck})</span>
+                          {/* Opponent Highlighted icons */}
+                          <div className="flex -space-x-1.5">
+                            {getArchetypeSprites(match.opponentDeck).map((spriteName, idx) => (
+                              <div key={idx} className="w-5.5 h-5.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shadow">
+                                <PokemonSprite name={spriteName} size="sm" className="w-4 h-4 scale-110" />
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>

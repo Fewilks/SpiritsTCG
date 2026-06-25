@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, matchesCol, membersCol } from '../lib/firebase';
+import { db, matchesCol, membersCol, decksCol } from '../lib/firebase';
 import { getDocs, addDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
-import { Member, MatchRecord } from '../types';
+import { Member, MatchRecord, DeckRecord } from '../types';
 import { 
   Swords, 
   Calendar, 
@@ -19,9 +19,29 @@ interface MatchesProps {
   currentMember: Member;
 }
 
+export function getArchetypeSprites(archetype: string): string[] {
+  if (!archetype) return ['substitute'];
+  
+  // Split by '/', '+', 'and', 'with', 'ex', 'vstar', 'vmax', 'v', 'gmax', 'tera', 'prime', 'baby', 'deck'
+  const parts = archetype.split(/[\/\+\-]|and|with/i);
+  const pokemonNames = parts
+    .map(p => {
+      let name = p.trim().toLowerCase();
+      // Remove typical suffixes
+      name = name.replace(/\b(ex|vstar|vmax|v|gmax|tera|prime|baby|deck)\b/gi, '');
+      return name.trim();
+    })
+    .filter(name => name.length > 0);
+  
+  // Return at most 2, fallback to substitute if none
+  if (pokemonNames.length === 0) return ['substitute'];
+  return pokemonNames.slice(0, 2);
+}
+
 export default function Matches({ currentMember }: MatchesProps) {
   const [matches, setMatches] = useState<MatchRecord[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [allDecks, setAllDecks] = useState<DeckRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Filter conditions
@@ -36,6 +56,7 @@ export default function Matches({ currentMember }: MatchesProps) {
   const [player2Id, setPlayer2Id] = useState('');
   const [deckName, setDeckName] = useState('');
   const [deckArchetype, setDeckArchetype] = useState('Charizard ex');
+  const [selectedDeckId, setSelectedDeckId] = useState<string>('');
   const [opponentDeck, setOpponentDeck] = useState('');
   const [format, setFormat] = useState<'MD1' | 'MD3' | 'MD5'>('MD3');
   const [result, setResult] = useState<'win' | 'loss' | 'draw'>('win');
@@ -75,6 +96,11 @@ export default function Matches({ currentMember }: MatchesProps) {
         const memSnap = await getDocs(membersCol);
         const memList = memSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
         setMembers(memList);
+
+        // Load all registered decks
+        const deckSnap = await getDocs(decksCol);
+        const deckList = deckSnap.docs.map(d => ({ id: d.id, ...d.data() } as DeckRecord));
+        setAllDecks(deckList);
       } catch (err) {
         console.error('Error loading matches:', err);
       } finally {
@@ -157,6 +183,7 @@ export default function Matches({ currentMember }: MatchesProps) {
       setPlayer2IsMember(false);
       setPlayer2Id('');
       setDeckName('');
+      setSelectedDeckId('');
       setOpponentDeck('');
       setNotes('');
       alert('Partida registrada com sucesso! O ranking do time foi atualizado.');
@@ -286,15 +313,36 @@ export default function Matches({ currentMember }: MatchesProps) {
 
                 {/* Match deck setups */}
                 <div className="grid grid-cols-2 gap-4 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
-                  <div>
-                    <div className="text-[9px] text-slate-550 uppercase font-bold">Deck do Spirits</div>
-                    <div className="text-xs font-bold text-slate-200 mt-0.5 truncate" title={match.deckName}>{match.deckName}</div>
-                    <div className="text-[10px] text-slate-400 truncate">{match.deckArchetype}</div>
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {/* Archetype Icons */}
+                    <div className="flex -space-x-2 shrink-0">
+                      {getArchetypeSprites(match.deckArchetype).map((spriteName, idx) => (
+                        <div key={idx} className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-850 flex items-center justify-center overflow-hidden shadow-md">
+                          <PokemonSprite name={spriteName} size="sm" className="w-5.5 h-5.5 scale-110" />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[9px] text-slate-550 uppercase font-bold">Deck do Spirits</div>
+                      <div className="text-xs font-bold text-slate-200 truncate" title={match.deckName}>{match.deckName}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{match.deckArchetype}</div>
+                    </div>
                   </div>
 
-                  <div className="text-right border-l border-slate-900 pl-4">
-                    <div className="text-[9px] text-slate-550 uppercase font-bold">Deck Oponente</div>
-                    <div className="text-xs font-bold text-slate-200 mt-0.5 truncate" title={match.opponentDeck}>{match.opponentDeck}</div>
+                  <div className="flex items-center justify-end gap-2.5 text-right border-l border-slate-900 pl-4 min-w-0">
+                    <div className="min-w-0">
+                      <div className="text-[9px] text-slate-550 uppercase font-bold">Deck Oponente</div>
+                      <div className="text-xs font-bold text-slate-200 truncate" title={match.opponentDeck}>{match.opponentDeck}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{match.opponentDeck}</div>
+                    </div>
+                    {/* Opponent Archetype Icons */}
+                    <div className="flex -space-x-2 shrink-0">
+                      {getArchetypeSprites(match.opponentDeck).map((spriteName, idx) => (
+                        <div key={idx} className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-850 flex items-center justify-center overflow-hidden shadow-md">
+                          <PokemonSprite name={spriteName} size="sm" className="w-5.5 h-5.5 scale-110" />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -418,33 +466,91 @@ export default function Matches({ currentMember }: MatchesProps) {
               </div>
 
               {/* Decks comparison */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Nome do seu Deck:</label>
-                  <input
-                    id="p1-deck-input"
-                    type="text"
-                    placeholder="ex: Charizard Dragapult"
-                    value={deckName}
-                    onChange={(e) => setDeckName(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                    required
-                  />
+              <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase">Selecione seu Deck Cadastrado:</label>
+                    <select
+                      id="p1-deck-selector"
+                      value={selectedDeckId}
+                      onChange={(e) => {
+                        const selId = e.target.value;
+                        setSelectedDeckId(selId);
+                        if (selId === 'custom') {
+                          setDeckName('');
+                          setDeckArchetype('Charizard ex');
+                        } else {
+                          const foundDeck = allDecks.find(d => d.id === selId);
+                          if (foundDeck) {
+                            setDeckName(foundDeck.deckName);
+                            setDeckArchetype(foundDeck.archetype);
+                          } else {
+                            setDeckName('');
+                            setDeckArchetype('Charizard ex');
+                          }
+                        }
+                      }}
+                      className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-semibold"
+                      required
+                    >
+                      <option value="">-- Selecione seu Deck --</option>
+                      {allDecks.filter(d => d.userId === player1Id).map(d => (
+                        <option key={d.id} value={d.id}>{d.deckName} ({d.archetype})</option>
+                      ))}
+                      <option value="custom">✍️ Digitar Manualmente...</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase">Arquétipo do Deck:</label>
+                    {selectedDeckId !== 'custom' && selectedDeckId !== '' ? (
+                      <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm font-semibold truncate">
+                        {deckArchetype}
+                      </div>
+                    ) : (
+                      <select
+                        id="p1-archetype-select"
+                        value={deckArchetype}
+                        onChange={(e) => setDeckArchetype(e.target.value)}
+                        className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
+                      >
+                        {archetypes.map(a => (
+                          <option key={a} value={a}>{a}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-300 uppercase">Arquetipo Principal:</label>
-                  <select
-                    id="p1-archetype-select"
-                    value={deckArchetype}
-                    onChange={(e) => setDeckArchetype(e.target.value)}
-                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                  >
-                    {archetypes.map(a => (
-                      <option key={a} value={a}>{a}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* If custom is selected, let them type the name */}
+                {selectedDeckId === 'custom' && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-300 uppercase">Nome Personalizado do seu Deck:</label>
+                    <input
+                      id="p1-deck-input"
+                      type="text"
+                      placeholder="ex: Charizard Dragapult"
+                      value={deckName}
+                      onChange={(e) => setDeckName(e.target.value)}
+                      className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Live Preview of highlight icons */}
+                {(deckArchetype || deckName) && (
+                  <div className="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
+                    <div className="text-xs text-slate-400 font-bold uppercase shrink-0">Destaque do Deck (2 Pokémons):</div>
+                    <div className="flex gap-1.5">
+                      {getArchetypeSprites(selectedDeckId !== 'custom' && selectedDeckId !== '' ? deckArchetype : (deckArchetype || deckName)).map((spriteName, idx) => (
+                        <div key={idx} className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                          <PokemonSprite name={spriteName} size="sm" className="w-6 h-6 scale-110" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
