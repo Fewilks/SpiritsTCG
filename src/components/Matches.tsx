@@ -45,6 +45,7 @@ export default function Matches({ currentMember }: MatchesProps) {
   const [loading, setLoading] = useState(true);
   const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
   const [showOnlyMine, setShowOnlyMine] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
   // Filter conditions
   const [filterResult, setFilterResult] = useState<string>('all');
@@ -58,6 +59,8 @@ export default function Matches({ currentMember }: MatchesProps) {
   const [player2Id, setPlayer2Id] = useState('');
   const [deckName, setDeckName] = useState('');
   const [deckArchetype, setDeckArchetype] = useState('Charizard ex');
+  const [deckPokemon1, setDeckPokemon1] = useState('charizard');
+  const [deckPokemon2, setDeckPokemon2] = useState('');
   const [selectedDeckId, setSelectedDeckId] = useState<string>('');
   const [opponentDeck, setOpponentDeck] = useState('');
   const [format, setFormat] = useState<'MD1' | 'MD3' | 'MD5'>('MD3');
@@ -137,12 +140,9 @@ export default function Matches({ currentMember }: MatchesProps) {
   const handleDeleteSelected = async () => {
     if (selectedMatches.length === 0) return;
     
-    if (!window.confirm(`Tem certeza que deseja apagar as ${selectedMatches.length} partidas selecionadas? Isso irá recalcular as estatísticas dos membros correspondentes.`)) {
-      return;
-    }
-    
     try {
       setLoading(true);
+      setShowDeleteModal(false);
       
       const memSnap = await getDocs(membersCol);
       const latestMembers = memSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
@@ -207,8 +207,24 @@ export default function Matches({ currentMember }: MatchesProps) {
 
   const handleRegisterMatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!player2Name.trim() || !deckName.trim() || !opponentDeck.trim()) {
-      alert('Por favor, preencha todos os campos obrigatórios!');
+    if (player2IsMember && !player2Id) {
+      alert('Por favor, selecione o membro oponente!');
+      return;
+    }
+    if (!player2IsMember && !player2Name.trim()) {
+      alert('Por favor, insira o nome do oponente!');
+      return;
+    }
+    if (!deckName.trim()) {
+      alert('Por favor, insira o nome do seu deck!');
+      return;
+    }
+    if ((selectedDeckId === 'custom' || selectedDeckId === '') && !deckPokemon1.trim()) {
+      alert('Por favor, insira pelo menos o primeiro Pokémon em destaque!');
+      return;
+    }
+    if (!opponentDeck.trim()) {
+      alert('Por favor, insira o deck do oponente!');
       return;
     }
 
@@ -216,6 +232,9 @@ export default function Matches({ currentMember }: MatchesProps) {
       setRegistering(true);
 
       const p1Member = members.find(m => m.id === player1Id) || currentMember;
+      const computedArchetype = (selectedDeckId !== 'custom' && selectedDeckId !== '')
+        ? deckArchetype
+        : (deckPokemon2.trim() ? `${deckPokemon1.trim()} + ${deckPokemon2.trim()}` : deckPokemon1.trim() || 'Desconhecido');
 
       const newMatch: Omit<MatchRecord, 'id'> = {
         player1Id: player1Id,
@@ -223,15 +242,15 @@ export default function Matches({ currentMember }: MatchesProps) {
         player1Sprite: p1Member.avatarSprite,
         player2Name: player2IsMember ? (members.find(m => m.id === player2Id)?.name || player2Name) : player2Name,
         player2IsMember: player2IsMember,
-        player2Id: player2IsMember ? player2Id : undefined,
-        deckName: deckName,
-        deckArchetype: deckArchetype,
-        opponentDeck: opponentDeck,
+        player2Id: (player2IsMember && player2Id) ? player2Id : '',
+        deckName: deckName.trim(),
+        deckArchetype: computedArchetype,
+        opponentDeck: opponentDeck.trim(),
         format: format,
         result: result,
-        score: score,
+        score: score.trim(),
         playedAt: new Date().toISOString(),
-        notes: notes.trim() || undefined
+        notes: notes.trim()
       };
 
       // 1. Add to Matches collection
@@ -278,6 +297,8 @@ export default function Matches({ currentMember }: MatchesProps) {
       setPlayer2Id('');
       setDeckName('');
       setSelectedDeckId('');
+      setDeckPokemon1('charizard');
+      setDeckPokemon2('');
       setOpponentDeck('');
       setNotes('');
       alert('Partida registrada com sucesso! O ranking do time foi atualizado.');
@@ -316,7 +337,7 @@ export default function Matches({ currentMember }: MatchesProps) {
           {selectedMatches.length > 0 && (
             <button
               id="btn-delete-selected"
-              onClick={handleDeleteSelected}
+              onClick={() => setShowDeleteModal(true)}
               className="px-4 py-2 bg-rose-600 hover:bg-rose-550 text-white rounded-lg font-bold text-sm flex items-center gap-2 cursor-pointer transition-all duration-300 shadow-lg shadow-rose-950/40"
             >
               🗑️ Apagar Selecionadas ({selectedMatches.length})
@@ -607,63 +628,106 @@ export default function Matches({ currentMember }: MatchesProps) {
 
               {/* Decks comparison */}
               <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-850 space-y-4">
+                
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-300 uppercase">Selecione seu Deck Cadastrado:</label>
+                  <select
+                    id="p1-deck-selector"
+                    value={selectedDeckId}
+                    onChange={(e) => {
+                      const selId = e.target.value;
+                      setSelectedDeckId(selId);
+                      if (selId === 'custom') {
+                        setDeckName('');
+                        setDeckPokemon1('charizard');
+                        setDeckPokemon2('');
+                      } else {
+                        const foundDeck = allDecks.find(d => d.id === selId);
+                        if (foundDeck) {
+                          setDeckName(foundDeck.deckName);
+                          setDeckArchetype(foundDeck.archetype);
+                          const parts = getArchetypeSprites(foundDeck.archetype);
+                          setDeckPokemon1(parts[0] || 'substitute');
+                          setDeckPokemon2(parts[1] || '');
+                        } else {
+                          setDeckName('');
+                          setDeckPokemon1('charizard');
+                          setDeckPokemon2('');
+                        }
+                      }
+                    }}
+                    className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-semibold"
+                    required
+                  >
+                    <option value="">-- Selecione seu Deck --</option>
+                    {allDecks.filter(d => d.userId === player1Id).map(d => (
+                      <option key={d.id} value={d.id}>{d.deckName} ({d.archetype})</option>
+                    ))}
+                    <option value="custom">✍️ Digitar Manualmente...</option>
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-300 uppercase">Selecione seu Deck Cadastrado:</label>
-                    <select
-                      id="p1-deck-selector"
-                      value={selectedDeckId}
-                      onChange={(e) => {
-                        const selId = e.target.value;
-                        setSelectedDeckId(selId);
-                        if (selId === 'custom') {
-                          setDeckName('');
-                          setDeckArchetype('Charizard ex');
-                        } else {
-                          const foundDeck = allDecks.find(d => d.id === selId);
-                          if (foundDeck) {
-                            setDeckName(foundDeck.deckName);
-                            setDeckArchetype(foundDeck.archetype);
-                          } else {
-                            setDeckName('');
-                            setDeckArchetype('Charizard ex');
-                          }
-                        }
-                      }}
-                      className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-semibold"
-                      required
-                    >
-                      <option value="">-- Selecione seu Deck --</option>
-                      {allDecks.filter(d => d.userId === player1Id).map(d => (
-                        <option key={d.id} value={d.id}>{d.deckName} ({d.archetype})</option>
-                      ))}
-                      <option value="custom">✍️ Digitar Manualmente...</option>
-                    </select>
+                    <label className="block text-xs font-bold text-slate-300 uppercase">Pokémon Destaque 1 (Ícone):</label>
+                    {selectedDeckId !== 'custom' && selectedDeckId !== '' ? (
+                      <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm font-semibold capitalize flex items-center gap-2">
+                        <PokemonSprite name={deckPokemon1 || 'substitute'} size="sm" className="w-5 h-5" />
+                        <span className="truncate">{deckPokemon1}</span>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Ex: charizard, lugia"
+                          value={deckPokemon1}
+                          onChange={(e) => setDeckPokemon1(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          className="w-full p-2.5 pl-9 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-semibold"
+                          required
+                        />
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                          <PokemonSprite name={deckPokemon1 || 'substitute'} size="sm" className="w-5 h-5 scale-125" />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-300 uppercase">Arquétipo do Deck:</label>
+                    <label className="block text-xs font-bold text-slate-300 uppercase">Pokémon Destaque 2 (Opcional):</label>
                     {selectedDeckId !== 'custom' && selectedDeckId !== '' ? (
-                      <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm font-semibold truncate">
-                        {deckArchetype}
+                      <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-lg text-white text-sm font-semibold capitalize flex items-center gap-2">
+                        {deckPokemon2 ? (
+                          <>
+                            <PokemonSprite name={deckPokemon2} size="sm" className="w-5 h-5" />
+                            <span className="truncate">{deckPokemon2}</span>
+                          </>
+                        ) : (
+                          <span className="text-slate-500 font-normal">Nenhum</span>
+                        )}
                       </div>
                     ) : (
-                      <select
-                        id="p1-archetype-select"
-                        value={deckArchetype}
-                        onChange={(e) => setDeckArchetype(e.target.value)}
-                        className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
-                      >
-                        {archetypes.map(a => (
-                          <option key={a} value={a}>{a}</option>
-                        ))}
-                      </select>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Ex: dragapult, pidgeot"
+                          value={deckPokemon2}
+                          onChange={(e) => setDeckPokemon2(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                          className="w-full p-2.5 pl-9 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none font-semibold"
+                        />
+                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 flex items-center justify-center">
+                          {deckPokemon2 ? (
+                            <PokemonSprite name={deckPokemon2} size="sm" className="w-5 h-5 scale-125" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border border-dashed border-slate-700" />
+                          )}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* If custom is selected, let them type the name */}
-                {selectedDeckId === 'custom' && (
+                {(selectedDeckId === 'custom' || selectedDeckId === '') && (
                   <div className="space-y-1.5">
                     <label className="block text-xs font-bold text-slate-300 uppercase">Nome Personalizado do seu Deck:</label>
                     <input
@@ -675,20 +739,6 @@ export default function Matches({ currentMember }: MatchesProps) {
                       className="w-full p-2.5 bg-slate-950 border border-slate-850 focus:border-purple-500 rounded-lg text-white text-sm outline-none"
                       required
                     />
-                  </div>
-                )}
-
-                {/* Live Preview of highlight icons */}
-                {(deckArchetype || deckName) && (
-                  <div className="flex items-center gap-3 bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80">
-                    <div className="text-xs text-slate-400 font-bold uppercase shrink-0">Destaque do Deck (2 Pokémons):</div>
-                    <div className="flex gap-1.5">
-                      {getArchetypeSprites(selectedDeckId !== 'custom' && selectedDeckId !== '' ? deckArchetype : (deckArchetype || deckName)).map((spriteName, idx) => (
-                        <div key={idx} className="w-8 h-8 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
-                          <PokemonSprite name={spriteName} size="sm" className="w-6 h-6 scale-110" />
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
               </div>
@@ -774,6 +824,46 @@ export default function Matches({ currentMember }: MatchesProps) {
 
             </form>
 
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" id="delete-match-modal">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 animate-scale-up">
+            <div className="text-center space-y-2">
+              <div className="inline-flex w-12 h-12 bg-rose-950/40 border border-rose-500/30 rounded-full items-center justify-center text-rose-400 mb-2">
+                <span className="text-2xl">🗑️</span>
+              </div>
+              <h3 className="text-lg font-bold text-white">Apagar Partidas Selecionadas</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Você tem certeza que deseja apagar as <strong className="text-rose-400">{selectedMatches.length}</strong> partidas selecionadas?
+              </p>
+              <div className="p-3 bg-slate-950/60 border border-slate-850 rounded-xl text-left">
+                <p className="text-[11px] text-amber-400 font-semibold flex items-start gap-1.5 leading-normal">
+                  <span>⚠️</span>
+                  <span>Esta ação é irreversível e irá recalcular as estatísticas (vitórias, derrotas, empates) de todos os membros envolvidos.</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-bold transition-all cursor-pointer shadow-lg shadow-rose-950/30"
+              >
+                Sim, apagar
+              </button>
+            </div>
           </div>
         </div>
       )}

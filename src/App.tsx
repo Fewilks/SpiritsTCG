@@ -313,7 +313,13 @@ export default function App() {
       <main className="flex-1 bg-slate-950 p-6 md:p-8 overflow-y-auto max-h-screen" id="main-stage">
         {currentMember ? (
           <div>
-            {activeTab === 'dashboard' && <Dashboard currentMember={currentMember} setActiveTab={setActiveTab} />}
+            {activeTab === 'dashboard' && (
+              <Dashboard 
+                currentMember={currentMember} 
+                setActiveTab={setActiveTab} 
+                onStatsHealed={() => loadPortalData(currentUser?.uid)} 
+              />
+            )}
             
             {activeTab === 'colecao' && <Collection currentMember={currentMember} />}
             

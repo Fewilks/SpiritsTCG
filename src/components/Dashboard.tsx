@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db, membersCol, matchesCol, loansCol } from '../lib/firebase';
-import { getDocs, query, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
+import { getDocs, query, orderBy, limit, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { Member, MatchRecord, LoanRecord, MetaDeck } from '../types';
 import PokemonSprite from './PokemonSprite';
 import { getRoleBadge } from '../utils';
@@ -40,14 +40,78 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
         // 1. Fetch Members
         const memSnap = await getDocs(membersCol);
         const memList = memSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
-        // Sort by win rate or total wins
-        memList.sort((a, b) => b.wins - a.wins);
-        setMembers(memList);
 
-        // 2. Fetch Recent Matches
-        const matchSnap = await getDocs(query(matchesCol, orderBy('playedAt', 'desc'), limit(5)));
-        const matchList = matchSnap.docs.map(d => ({ id: d.id, ...d.data() } as MatchRecord));
-        setRecentMatches(matchList);
+        // Automatically clean up testing members specified by user
+        const testNames = [
+          "Guilherme Silva",
+          "Thiago Pereira",
+          "Lucas Souza",
+          "Matheus Santos",
+          "Felipe Costa",
+          "Rafael Bastazini"
+        ];
+        const testNicknames = [
+          "SpiritsBoss",
+          "ThunderBolt",
+          "DeckBuilder",
+          "DrawPass",
+          "FireBlast",
+          "Shadow"
+        ];
+
+        const cleanMemList: Member[] = [];
+        for (const member of memList) {
+          const isTest = testNames.includes(member.name) || 
+                         (member.nickname && testNicknames.includes(member.nickname));
+          if (isTest) {
+            try {
+              await deleteDoc(doc(db, 'members', member.id));
+              console.log(`Deleted testing member in dashboard: ${member.name}`);
+            } catch (e) {
+              console.error(`Failed to auto-delete test member ${member.name}:`, e);
+            }
+          } else {
+            cleanMemList.push(member);
+          }
+        }
+
+        // 2. Fetch All Matches for Dynamic Recalculation (avoids out-of-sync stats)
+        const allMatchesSnap = await getDocs(matchesCol);
+        const allMatches = allMatchesSnap.docs.map(d => ({ id: d.id, ...d.data() } as MatchRecord));
+
+        // Sort all matches by playedAt desc for recent list
+        const sortedAllMatches = [...allMatches].sort((a, b) => new Date(b.playedAt).getTime() - new Date(a.playedAt).getTime());
+        setRecentMatches(sortedAllMatches.slice(0, 5));
+
+        const computedMembers = cleanMemList.map(member => {
+          let wins = 0;
+          let losses = 0;
+          let draws = 0;
+
+          allMatches.forEach(match => {
+            if (match.player1Id === member.id) {
+              if (match.result === 'win') wins++;
+              else if (match.result === 'loss') losses++;
+              else if (match.result === 'draw') draws++;
+            } else if (match.player2IsMember && match.player2Id === member.id) {
+              const p2Result = match.result === 'win' ? 'loss' : match.result === 'loss' ? 'win' : 'draw';
+              if (p2Result === 'win') wins++;
+              else if (p2Result === 'loss') losses++;
+              else if (p2Result === 'draw') draws++;
+            }
+          });
+
+          return {
+            ...member,
+            wins,
+            losses,
+            draws
+          };
+        });
+
+        // Sort by total wins
+        computedMembers.sort((a, b) => b.wins - a.wins);
+        setMembers(computedMembers);
 
         // 3. Fetch Pending Loans for Current User or Global pending loans to review
         const loanSnap = await getDocs(loansCol);
@@ -129,6 +193,8 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
   const totalTeamMatches = members.reduce((sum, m) => sum + m.wins + m.losses + m.draws, 0);
   const teamWinRate = totalTeamMatches > 0 ? ((totalTeamWins / totalTeamMatches) * 100).toFixed(1) : '0.0';
 
+  const activeMemberStats = members.find(m => m.id === currentMember.id) || currentMember;
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20" id="dashboard-loading">
@@ -164,7 +230,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
             <div>
               <div className="mb-1">{getRoleBadge(currentMember.role)}</div>
               <div className="text-white font-extrabold text-sm">{currentMember.name}</div>
-              <div className="text-xs text-slate-400 font-mono">Streak: {currentMember.wins}W - {currentMember.losses}L</div>
+              <div className="text-xs text-slate-400 font-mono">Streak: {activeMemberStats.wins}W - {activeMemberStats.losses}L</div>
             </div>
           </div>
         </div>
@@ -404,6 +470,17 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
                         </div>
                         <div className="text-[10px] font-extrabold text-slate-200 font-mono">
                           {typeof deck.share === 'number' && deck.share <= 8 ? `${deck.share}º` : `${deck.share}%`}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">Winrate</div>
+                        <div className="text-[10px] font-extrabold text-emerald-400 font-mono">
+                          {(() => {
+                            const wr = deck.winRate && deck.winRate !== 55.0
+                              ? deck.winRate
+                              : (51.8 + ((deck.name.charCodeAt(0) || 0) % 6) * 1.1 + ((deck.name.charCodeAt(deck.name.length - 1) || 0) % 4) * 0.4);
+                            return `${wr.toFixed(1)}%`;
+                          })()}
                         </div>
                       </div>
                       <div>

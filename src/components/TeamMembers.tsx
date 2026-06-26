@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { db, membersCol } from '../lib/firebase';
-import { getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
-import { Member } from '../types';
+import { db, membersCol, matchesCol } from '../lib/firebase';
+import { getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Member, MatchRecord } from '../types';
 import { getRoleBadge } from '../utils';
 import { 
   PlusCircle, 
@@ -15,7 +15,8 @@ import {
   Heart,
   ChevronRight,
   UserCheck,
-  Settings
+  Settings,
+  Trash2
 } from 'lucide-react';
 import PokemonSprite from './PokemonSprite';
 
@@ -53,6 +54,10 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
   const [editNickname, setEditNickname] = useState(currentMember.nickname || '');
   const [editAvatarSprite, setEditAvatarSprite] = useState(currentMember.avatarSprite || 'pikachu');
 
+  // Deletion state variables
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   // Popular representative avatar suggestions
   const avatarOptions = [
     { name: 'Pikachu', id: 'pikachu' },
@@ -74,10 +79,75 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
     try {
       setLoading(true);
       const snap = await getDocs(membersCol);
-      const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
-      // Sort by Win Rate or total wins
-      list.sort((a, b) => b.wins - a.wins);
-      setMembers(list);
+      const rawList = snap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+
+      // Automatically clean up testing members specified by user
+      const testNames = [
+        "Guilherme Silva",
+        "Thiago Pereira",
+        "Lucas Souza",
+        "Matheus Santos",
+        "Felipe Costa",
+        "Rafael Bastazini"
+      ];
+      const testNicknames = [
+        "SpiritsBoss",
+        "ThunderBolt",
+        "DeckBuilder",
+        "DrawPass",
+        "FireBlast",
+        "Shadow"
+      ];
+
+      const cleanList: Member[] = [];
+      for (const member of rawList) {
+        const isTest = testNames.includes(member.name) || 
+                       (member.nickname && testNicknames.includes(member.nickname));
+        if (isTest) {
+          try {
+            await deleteDoc(doc(db, 'members', member.id));
+            console.log(`Deleted testing member: ${member.name}`);
+          } catch (e) {
+            console.error(`Failed to auto-delete test member ${member.name}:`, e);
+          }
+        } else {
+          cleanList.push(member);
+        }
+      }
+
+      // Fetch all matches to compute stats dynamically
+      const matchesSnap = await getDocs(matchesCol);
+      const allMatches = matchesSnap.docs.map(d => ({ id: d.id, ...d.data() } as MatchRecord));
+
+      const computedMembers = cleanList.map(member => {
+        let wins = 0;
+        let losses = 0;
+        let draws = 0;
+
+        allMatches.forEach(match => {
+          if (match.player1Id === member.id) {
+            if (match.result === 'win') wins++;
+            else if (match.result === 'loss') losses++;
+            else if (match.result === 'draw') draws++;
+          } else if (match.player2IsMember && match.player2Id === member.id) {
+            const p2Result = match.result === 'win' ? 'loss' : match.result === 'loss' ? 'win' : 'draw';
+            if (p2Result === 'win') wins++;
+            else if (p2Result === 'loss') losses++;
+            else if (p2Result === 'draw') draws++;
+          }
+        });
+
+        return {
+          ...member,
+          wins,
+          losses,
+          draws
+        };
+      });
+
+      // Sort by total wins
+      computedMembers.sort((a, b) => b.wins - a.wins);
+      setMembers(computedMembers);
     } catch (err) {
       console.error('Error fetching members list:', err);
     } finally {
@@ -180,6 +250,25 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
     }
   };
 
+  const handleDeleteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!memberToDelete) return;
+
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, 'members', memberToDelete.id));
+      setShowDeleteConfirm(false);
+      setMemberToDelete(null);
+      await fetchMembers();
+      alert('Membro excluído com sucesso!');
+    } catch (err) {
+      console.error('Error deleting member:', err);
+      alert('Erro ao excluir membro.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getWinRate = (m: Member): string => {
     const total = m.wins + m.losses + m.draws;
     if (total === 0) return '0.0';
@@ -266,17 +355,32 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                       {getRoleBadge(mem.role)}
                       
                       {hasStaffPermission && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setEditingMember(mem);
-                            setSelectedNewRole(mem.role as any);
-                            setShowRoleModal(true);
-                          }}
-                          className="text-[9px] text-purple-400 hover:text-purple-300 font-bold transition-all flex items-center gap-0.5 bg-slate-950/40 hover:bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded cursor-pointer"
-                        >
-                          <Settings className="w-3 h-3 text-purple-400" /> Level
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingMember(mem);
+                              setSelectedNewRole(mem.role as any);
+                              setShowRoleModal(true);
+                            }}
+                            className="text-[9px] text-purple-400 hover:text-purple-300 font-bold transition-all flex items-center gap-0.5 bg-slate-950/40 hover:bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded cursor-pointer"
+                          >
+                            <Settings className="w-3 h-3 text-purple-400" /> Level
+                          </button>
+
+                          {mem.id !== currentMember.id && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMemberToDelete(mem);
+                                setShowDeleteConfirm(true);
+                              }}
+                              className="text-[9px] text-rose-400 hover:text-rose-300 font-bold transition-all flex items-center gap-0.5 bg-slate-950/40 hover:bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3 text-rose-400" /> Excluir
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -568,6 +672,70 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
               >
                 Atualizar Level do Membro
               </button>
+            </form>
+
+          </div>
+        </div>
+      )}
+
+      {/* Delete Member Confirmation Modal */}
+      {showDeleteConfirm && memberToDelete && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" id="delete-member-modal">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            
+            {/* Header */}
+            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-gradient-to-r from-red-900/40 to-slate-900">
+              <div className="flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-500" />
+                <h3 className="text-base font-bold text-white">Excluir Membro Spirits</h3>
+              </div>
+              <button 
+                id="close-delete-modal-x"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setMemberToDelete(null);
+                }}
+                className="text-slate-400 hover:text-white transition-all cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleDeleteMember} className="p-6 space-y-4">
+              <div className="flex items-center gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
+                <PokemonSprite name={memberToDelete.avatarSprite} size="sm" />
+                <div>
+                  <h4 className="text-sm font-bold text-white">{memberToDelete.name}</h4>
+                  <p className="text-xs text-rose-400">{memberToDelete.nickname ? `@${memberToDelete.nickname}` : 'Sem apelido'}</p>
+                </div>
+              </div>
+
+              <div className="bg-rose-950/20 border border-rose-900/40 p-3 rounded-xl text-xs text-rose-300 space-y-1.5 leading-relaxed">
+                <p className="font-bold">⚠️ Atenção: Esta ação é irreversível!</p>
+                <p>O jogador será desvinculado do roster competitivo dos Spirits. Partidas registradas por ou contra este jogador continuarão no histórico, mas ele não aparecerá mais no Roster e nos Leaderboards.</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  id="btn-cancel-delete"
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setMemberToDelete(null);
+                  }}
+                  className="flex-1 py-3 bg-slate-800 hover:bg-slate-750 text-slate-200 font-bold rounded-xl text-sm cursor-pointer transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  id="btn-confirm-delete"
+                  type="submit"
+                  className="flex-1 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg transition-all"
+                >
+                  Excluir Membro
+                </button>
+              </div>
             </form>
 
           </div>
