@@ -143,7 +143,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-purple-400 font-bold tracking-wider text-xs uppercase font-mono">
               <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-              Arena Espírita de Elite
+              Arena Spirits de Elite
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
               Olá, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300">{currentMember.nickname || currentMember.name}</span>!
