@@ -35,6 +35,7 @@ const metaDecks = [
     share: 18.2,
     winRate: 55.4,
     imageUrl: 'https://images.pokemontcg.io/sv8-54.png',
+    updatedAt: '2024-11-08',
     description: 'O deck do momento após Surging Sparks. Pikachu ex bate 300 de dano e previne nocaute com vida cheia (habilidade Resolute Heart), energizado instantaneamente pela habilidade Overcharge do Magneton.',
     cards: [
       { name: 'Pikachu ex (SSP 054)', count: 3 },
@@ -76,6 +77,7 @@ Energy: 12
     share: 14.5,
     winRate: 53.8,
     imageUrl: 'https://images.pokemontcg.io/sit-136.png',
+    updatedAt: '2023-06-09',
     description: 'Extremamente versátil. Usa o ataque Apex Dragon para copiar ataques de qualquer dragão no descarte (como Giratina VSTAR ou Noivern ex), energizado rapidamente por Teal Mask Ogerpon ex.',
     cards: [
       { name: 'Regidrago VSTAR (SIT 136)', count: 3 },
@@ -121,6 +123,7 @@ Energy: 12
     share: 13.2,
     winRate: 52.9,
     imageUrl: 'https://images.pokemontcg.io/tef-123.png',
+    updatedAt: '2024-03-22',
     description: 'Dano explosivo ilimitado. Descarta energias em jogo para causar 70 de dano por energia, utilizando Ogerpon para acelerar energias de Grama e puxar cartas adicionais.',
     cards: [
       { name: 'Raging Bolt ex (TEF 123)', count: 4 },
@@ -166,6 +169,7 @@ Energy: 13
     share: 15.1,
     winRate: 53.6,
     imageUrl: 'https://images.pokemontcg.io/scr-128.png',
+    updatedAt: '2024-09-13',
     description: 'Utiliza Area Zero Underdepths para expandir o banco para 8 Pokémons, aumentando o dano do Unified Beatdown de Terapagos ex para 240. Dusknoir oferece nocautes surpresa com Cursed Blast.',
     cards: [
       { name: 'Terapagos ex (SCR 128)', count: 3 },
@@ -208,6 +212,7 @@ Energy: 12
     share: 12.8,
     winRate: 52.8,
     imageUrl: 'https://images.pokemontcg.io/ssp-34.png',
+    updatedAt: '2024-11-08',
     description: 'Descarte em massa de energias usando Earthen Vessel e Professor Sada. O ataque de Ceruledge ex causa 30 de dano para cada energia na pilha de descarte, atingindo números avassaladores rapidamente.',
     cards: [
       { name: 'Ceruledge ex (SSP 034)', count: 4 },
@@ -247,6 +252,7 @@ Energy: 12
     share: 10.4,
     winRate: 51.9,
     imageUrl: 'https://images.pokemontcg.io/twm-130.png',
+    updatedAt: '2024-05-24',
     description: 'Dano cirúrgico. Com o ataque Phantom Dive, causa 200 de dano no ativo e distribui 6 contadores de dano no banco adversário. Pidgeot ex oferece busca irrestrita.',
     cards: [
       { name: 'Dragapult ex (TWM 130)', count: 3 },
@@ -455,6 +461,9 @@ app.get('/api/pokemon/meta', async (req, res) => {
             fallbackImage = 'https://images.pokemontcg.io/sv1-81.png';
           }
           
+          // New dynamic deck has current date as updatedAt so it ranks high
+          const todayStr = new Date().toISOString().split('T')[0];
+          
           richDecks.push({
             name: sc.name,
             archetype: sc.name,
@@ -462,6 +471,7 @@ app.get('/api/pokemon/meta', async (req, res) => {
             winRate: sc.winRate,
             imageUrl: fallbackImage,
             description: `Deck competitivo do formato Standard atual do Pokémon TCG. Metagame share de ${sc.share}% registrado pelo site Limitless TCG.`,
+            updatedAt: todayStr,
             cards: [
               { name: sc.name, count: 4 }
             ],
@@ -470,13 +480,27 @@ app.get('/api/pokemon/meta', async (req, res) => {
         }
       });
       
-      // Sort combined results by metagame share descending
-      richDecks.sort((a: any, b: any) => b.share - a.share);
+      // Sort combined results by updatedAt descending, then by metagame share descending
+      richDecks.sort((a: any, b: any) => {
+        const dateA = a.updatedAt || '2023-01-01';
+        const dateB = b.updatedAt || '2023-01-01';
+        if (dateB !== dateA) {
+          return dateB.localeCompare(dateA);
+        }
+        return b.share - a.share;
+      });
       return res.json(richDecks);
     }
     
-    // Scraper returned empty or failed - fallback to our beautiful sorted list
-    richDecks.sort((a: any, b: any) => b.share - a.share);
+    // Sort our high quality pre-seeded list by updatedAt descending
+    richDecks.sort((a: any, b: any) => {
+      const dateA = a.updatedAt || '2023-01-01';
+      const dateB = b.updatedAt || '2023-01-01';
+      if (dateB !== dateA) {
+        return dateB.localeCompare(dateA);
+      }
+      return b.share - a.share;
+    });
     return res.json(richDecks);
   } catch (err) {
     console.error('Error serving Pokemon meta decks API:', err);

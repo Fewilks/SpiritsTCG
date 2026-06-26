@@ -43,9 +43,9 @@ export async function seedDatabaseIfEmpty() {
         role: 'Premium ball',
         nickname: 'felipewilks',
         avatarSprite: 'gengar-gmax',
-        wins: 42,
-        losses: 18,
-        draws: 5,
+        wins: 0,
+        losses: 0,
+        draws: 0,
         favoriteCard: 'Charizard ex',
         favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
         joinDate: '2025-01-10'
@@ -174,58 +174,8 @@ export async function seedDatabaseIfEmpty() {
       await setDoc(doc(db, 'loans', l.id), l);
     }
 
-    // 4. Matches Seeding
-    const defaultMatches: MatchRecord[] = [
-      {
-        id: 'match-1',
-        player1Id: 'member-1',
-        player1Name: 'Guilherme Silva',
-        player1Sprite: 'gengar-gmax',
-        player2Name: 'Carlos Rival (Legion)',
-        player2IsMember: false,
-        deckName: 'Charizard Dragapult',
-        deckArchetype: 'Charizard ex',
-        opponentDeck: 'Regidrago VSTAR',
-        format: 'MD3',
-        result: 'win',
-        score: '2-1',
-        playedAt: '2026-06-22T19:30:00Z',
-        notes: 'Final do torneio local. Charizard ex conseguiu solar o final de jogo com cinturão de escolha.'
-      },
-      {
-        id: 'match-2',
-        player1Id: 'member-2',
-        player1Name: 'Thiago Pereira',
-        player1Sprite: 'pikachu',
-        player2Name: 'Lucas Souza',
-        player2IsMember: true,
-        player2Id: 'member-3',
-        deckName: 'Iron Valiant',
-        deckArchetype: 'Iron Valiant ex',
-        opponentDeck: 'Gardevoir ex',
-        format: 'MD1',
-        result: 'win',
-        score: '1-0',
-        playedAt: '2026-06-23T15:00:00Z',
-        notes: 'Treino de time. Vitória rápida atacando com Tachyon Bits no primeiro turno.'
-      },
-      {
-        id: 'match-3',
-        player1Id: 'member-4',
-        player1Name: 'Matheus Santos',
-        player1Sprite: 'snorlax',
-        player2Name: 'Renato Silva (Team Alpha)',
-        player2IsMember: false,
-        deckName: 'Snorlax Stall',
-        deckArchetype: 'Snorlax Block',
-        opponentDeck: 'Raging Bolt ex',
-        format: 'MD3',
-        result: 'loss',
-        score: '0-2',
-        playedAt: '2026-06-24T09:00:00Z',
-        notes: 'Matchup difícil, oponente conseguiu recuar com energia de jato nos turnos cruciais.'
-      }
-    ];
+    // 4. Matches Seeding (Empty list to start clean)
+    const defaultMatches: MatchRecord[] = [];
 
     for (const m of defaultMatches) {
       await setDoc(doc(db, 'matches', m.id), m);

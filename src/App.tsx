@@ -315,44 +315,11 @@ export default function App() {
           <div>
             {activeTab === 'dashboard' && <Dashboard currentMember={currentMember} setActiveTab={setActiveTab} />}
             
-            {activeTab === 'colecao' && (
-              getRoleRankValue(currentMember.role) >= 2 ? (
-                <Collection currentMember={currentMember} />
-              ) : (
-                <RoleLock 
-                  currentMember={currentMember} 
-                  requiredRole="greatball" 
-                  featureName="Gerenciamento de Coleção" 
-                  onGoToProfile={() => setActiveTab('perfil')} 
-                />
-              )
-            )}
+            {activeTab === 'colecao' && <Collection currentMember={currentMember} />}
             
-            {activeTab === 'emprestimos' && (
-              getRoleRankValue(currentMember.role) >= 3 ? (
-                <Loans currentMember={currentMember} />
-              ) : (
-                <RoleLock 
-                  currentMember={currentMember} 
-                  requiredRole="ultraball" 
-                  featureName="Sistema de Empréstimos" 
-                  onGoToProfile={() => setActiveTab('perfil')} 
-                />
-              )
-            )}
+            {activeTab === 'emprestimos' && <Loans currentMember={currentMember} />}
             
-            {activeTab === 'partidas' && (
-              getRoleRankValue(currentMember.role) >= 3 ? (
-                <Matches currentMember={currentMember} />
-              ) : (
-                <RoleLock 
-                  currentMember={currentMember} 
-                  requiredRole="ultraball" 
-                  featureName="Registro de Partidas" 
-                  onGoToProfile={() => setActiveTab('perfil')} 
-                />
-              )
-            )}
+            {activeTab === 'partidas' && <Matches currentMember={currentMember} />}
             
             {activeTab === 'decks' && <Decks currentMember={currentMember} />}
             

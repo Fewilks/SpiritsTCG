@@ -18,6 +18,7 @@ import {
   Wand2
 } from 'lucide-react';
 import PokemonSprite from './PokemonSprite';
+import { fallbackMetaDecks } from '../data/fallbackDecks';
 
 interface DecksProps {
   currentMember: Member;
@@ -77,7 +78,7 @@ export default function Decks({ currentMember }: DecksProps) {
     loadDecks();
   }, [currentMember]);
 
-  // Load Limitless meta decks from backend API
+  // Load Limitless meta decks from backend API with fallback
   useEffect(() => {
     async function loadMetaDecks() {
       try {
@@ -85,10 +86,27 @@ export default function Decks({ currentMember }: DecksProps) {
         const res = await fetch('/api/pokemon/meta');
         if (res.ok) {
           const data = await res.json();
-          setMetaDecks(data);
+          // Sort by date descending
+          const sorted = data.sort((a: any, b: any) => {
+            const dateA = a.updatedAt || '2023-01-01';
+            const dateB = b.updatedAt || '2023-01-01';
+            if (dateB !== dateA) return dateB.localeCompare(dateA);
+            return b.share - a.share;
+          });
+          setMetaDecks(sorted);
+        } else {
+          throw new Error('Retornou status ' + res.status);
         }
       } catch (err) {
-        console.error('Error loading meta decks:', err);
+        console.error('Error loading meta decks from API, using fallback:', err);
+        // Fallback to our robust local list, sorted by date descending
+        const sortedFallback = [...fallbackMetaDecks].sort((a: any, b: any) => {
+          const dateA = a.updatedAt || '2023-01-01';
+          const dateB = b.updatedAt || '2023-01-01';
+          if (dateB !== dateA) return dateB.localeCompare(dateA);
+          return b.share - a.share;
+        });
+        setMetaDecks(sortedFallback);
       } finally {
         setLoadingMeta(false);
       }
@@ -565,8 +583,10 @@ export default function Decks({ currentMember }: DecksProps) {
                   {/* Stats section */}
                   <div className="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Win Rate</span>
-                      <span className="text-sm font-bold text-emerald-400 font-mono">{deck.winRate}%</span>
+                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Atualizado</span>
+                      <span className="text-sm font-bold text-indigo-400 font-mono">
+                        {deck.updatedAt ? new Date(deck.updatedAt + 'T00:00:00').toLocaleDateString('pt-BR') : '08/11/2024'}
+                      </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-500 uppercase font-bold block">Principais Cartas</span>

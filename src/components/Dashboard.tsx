@@ -5,6 +5,7 @@ import { Member, MatchRecord, LoanRecord, MetaDeck } from '../types';
 import PokemonSprite from './PokemonSprite';
 import { getRoleBadge } from '../utils';
 import { getArchetypeSprites } from './Matches';
+import { fallbackMetaDecks } from '../data/fallbackDecks';
 import { 
   TrendingUp, 
   Trophy, 
@@ -56,11 +57,31 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
         );
         setPendingLoans(relevantLoans);
 
-        // 4. Fetch Meta Decks from our backend API
-        const res = await fetch('/api/pokemon/meta');
-        if (res.ok) {
-          const metaData = await res.json();
-          setMetaDecks(metaData);
+        // 4. Fetch Meta Decks from our backend API with fallback
+        try {
+          const res = await fetch('/api/pokemon/meta');
+          if (res.ok) {
+            const metaData = await res.json();
+            // Sort by date descending
+            const sorted = metaData.sort((a: any, b: any) => {
+              const dateA = a.updatedAt || '2023-01-01';
+              const dateB = b.updatedAt || '2023-01-01';
+              if (dateB !== dateA) return dateB.localeCompare(dateA);
+              return b.share - a.share;
+            });
+            setMetaDecks(sorted);
+          } else {
+            throw new Error('Retornou status ' + res.status);
+          }
+        } catch (apiErr) {
+          console.error('Error fetching meta from API, using fallback:', apiErr);
+          const sortedFallback = [...fallbackMetaDecks].sort((a: any, b: any) => {
+            const dateA = a.updatedAt || '2023-01-01';
+            const dateB = b.updatedAt || '2023-01-01';
+            if (dateB !== dateA) return dateB.localeCompare(dateA);
+            return b.share - a.share;
+          });
+          setMetaDecks(sortedFallback);
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -373,8 +394,10 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
                         <div className="text-[10px] font-extrabold text-slate-200 font-mono">{deck.share}%</div>
                       </div>
                       <div>
-                        <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">Win Rate</div>
-                        <div className="text-[10px] font-extrabold text-emerald-400 font-mono">{deck.winRate}%</div>
+                        <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">Atualizado</div>
+                        <div className="text-[10px] font-extrabold text-indigo-400 font-mono">
+                          {deck.updatedAt ? new Date(deck.updatedAt + 'T00:00:00').toLocaleDateString('pt-BR', {month: '2-digit', year: '2-digit'}) : '11/24'}
+                        </div>
                       </div>
                     </div>
                   </div>

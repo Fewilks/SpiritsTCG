@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, matchesCol, membersCol, decksCol } from '../lib/firebase';
-import { getDocs, addDoc, doc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { getDocs, addDoc, doc, updateDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { Member, MatchRecord, DeckRecord } from '../types';
 import { 
   Swords, 
@@ -111,6 +111,40 @@ export default function Matches({ currentMember }: MatchesProps) {
     loadMatches();
   }, [currentMember]);
 
+  const handleClearHistory = async () => {
+    if (!window.confirm('Tem certeza que deseja apagar todo o histórico de partidas do time e zerar o placar (vitórias/derrotas) de todos os membros?')) {
+      return;
+    }
+    try {
+      setLoading(true);
+      
+      // Delete all documents in matches collection
+      const matchSnap = await getDocs(matchesCol);
+      for (const d of matchSnap.docs) {
+        await deleteDoc(doc(db, 'matches', d.id));
+      }
+      setMatches([]);
+
+      // Zero out stats for all members in the roster
+      const memSnap = await getDocs(membersCol);
+      for (const d of memSnap.docs) {
+        await updateDoc(doc(db, 'members', d.id), {
+          wins: 0,
+          losses: 0,
+          draws: 0
+        });
+      }
+
+      alert('Histórico limpo e estatísticas do time zeradas com sucesso!');
+      window.location.reload();
+    } catch (err) {
+      console.error('Error clearing matches history:', err);
+      alert('Ocorreu um erro ao limpar o histórico.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleRegisterMatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!player2Name.trim() || !deckName.trim() || !opponentDeck.trim()) {
@@ -214,13 +248,23 @@ export default function Matches({ currentMember }: MatchesProps) {
           </p>
         </div>
         
-        <button
-          id="btn-open-register-match"
-          onClick={() => setShowFormModal(true)}
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer transition-all duration-300"
-        >
-          <PlusCircle className="w-5 h-5" /> Registrar Nova Partida
-        </button>
+        <div className="flex gap-3">
+          <button
+            id="btn-clear-history"
+            onClick={handleClearHistory}
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg font-bold text-sm flex items-center gap-2 border border-slate-700 cursor-pointer transition-all duration-300"
+          >
+            🗑️ Limpar Histórico
+          </button>
+          
+          <button
+            id="btn-open-register-match"
+            onClick={() => setShowFormModal(true)}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer transition-all duration-300"
+          >
+            <PlusCircle className="w-5 h-5" /> Registrar Nova Partida
+          </button>
+        </div>
       </div>
 
       {/* Filter panel */}

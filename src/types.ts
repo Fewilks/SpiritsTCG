@@ -92,4 +92,6 @@ export interface MetaDeck {
   imageUrl: string;
   cards: { name: string; count: number }[];
   description: string;
+  updatedAt?: string;
+  rawList?: string;
 }
