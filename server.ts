@@ -349,9 +349,139 @@ async function findCardInTcgio(name: string, set?: string, number?: string): Pro
   return null;
 }
 
+// Dynamic scraper to fetch the latest Pokemon TCG metagame standings from Limitless TCG
+async function fetchMetaFromLimitless(): Promise<any[]> {
+  try {
+    const response = await fetch('https://limitlesstcg.com/decks', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Limitless responded with ${response.status}`);
+    }
+    
+    const html = await response.text();
+    
+    // Scan table rows for deck links
+    const rows = html.match(/<tr[^>]*>[\s\S]*?<\/tr>/gi) || [];
+    const parsedDecks: { name: string; share: number; winRate: number }[] = [];
+    
+    for (const row of rows) {
+      // Find links pointing to decks
+      const linkMatch = row.match(/href="\/decks\/([^"]+)"[^>]*>([^<]+)<\/a>/i);
+      if (linkMatch) {
+        const deckName = linkMatch[2].trim();
+        
+        // Skip administrative or navigation links
+        if (['Decks', 'Tournaments', 'Cards', 'Stats', 'About', 'Contact', 'Home', 'Log In', 'Register'].includes(deckName)) {
+          continue;
+        }
+        
+        // Find percentage cells (Metagame share and Win rate)
+        const percentMatches = [...row.matchAll(/>\s*(\d+(?:\.\d+)?)\s*%\s*</g)].map(m => parseFloat(m[1]));
+        
+        if (percentMatches.length >= 1) {
+          const share = percentMatches[0];
+          const winRate = percentMatches[1] || 50.0;
+          
+          parsedDecks.push({
+            name: deckName,
+            share,
+            winRate
+          });
+        }
+      }
+    }
+    
+    return parsedDecks;
+  } catch (err) {
+    console.error('Failed to scrape Limitless TCG live meta:', err);
+    return [];
+  }
+}
+
 // REST APIs
-app.get('/api/pokemon/meta', (req, res) => {
-  res.json(metaDecks);
+app.get('/api/pokemon/meta', async (req, res) => {
+  try {
+    const scraped = await fetchMetaFromLimitless();
+    
+    // Deep clone our high-quality pre-seeded decks
+    const richDecks = JSON.parse(JSON.stringify(metaDecks));
+    
+    if (scraped && scraped.length > 0) {
+      console.log(`Live Scraping: Successfully scraped ${scraped.length} decks from Limitless TCG.`);
+      
+      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+      
+      // Merge live data into our rich pre-seeded decklists
+      scraped.forEach(sc => {
+        const matched = richDecks.find((rd: any) => 
+          normalize(rd.name).includes(normalize(sc.name)) || 
+          normalize(sc.name).includes(normalize(rd.name)) ||
+          normalize(rd.archetype).includes(normalize(sc.name))
+        );
+        
+        if (matched) {
+          matched.share = sc.share;
+          matched.winRate = sc.winRate;
+        } else {
+          // If a new competitive deck arises, add it dynamically with standard placeholders
+          const normalizedName = sc.name.toLowerCase();
+          let fallbackImage = 'https://images.pokemontcg.io/sv1-166.png';
+          
+          if (normalizedName.includes('pikachu')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv8-54.png';
+          } else if (normalizedName.includes('charizard')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv3-125.png';
+          } else if (normalizedName.includes('gholdengo')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv4-139.png';
+          } else if (normalizedName.includes('roaring moon')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv4-163.png';
+          } else if (normalizedName.includes('gardevoir')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv1-86.png';
+          } else if (normalizedName.includes('bolt')) {
+            fallbackImage = 'https://images.pokemontcg.io/tef-123.png';
+          } else if (normalizedName.includes('drago')) {
+            fallbackImage = 'https://images.pokemontcg.io/sit-136.png';
+          } else if (normalizedName.includes('terapagos')) {
+            fallbackImage = 'https://images.pokemontcg.io/scr-128.png';
+          } else if (normalizedName.includes('ceruledge')) {
+            fallbackImage = 'https://images.pokemontcg.io/ssp-34.png';
+          } else if (normalizedName.includes('dragapult')) {
+            fallbackImage = 'https://images.pokemontcg.io/twm-130.png';
+          } else if (normalizedName.includes('miraidon')) {
+            fallbackImage = 'https://images.pokemontcg.io/sv1-81.png';
+          }
+          
+          richDecks.push({
+            name: sc.name,
+            archetype: sc.name,
+            share: sc.share,
+            winRate: sc.winRate,
+            imageUrl: fallbackImage,
+            description: `Deck competitivo do formato Standard atual do Pokémon TCG. Metagame share de ${sc.share}% registrado pelo site Limitless TCG.`,
+            cards: [
+              { name: sc.name, count: 4 }
+            ],
+            rawList: `Pokémon: 4\n4 ${sc.name}\n\nTrainer: 44\n4 Arven SVI 166\n4 Iono PAF 80\n4 Boss's Orders PAL 172\n4 Professor's Research SVI 190\n4 Nest Ball SVI 181\n4 Ultra Ball SVI 196\n4 Buddy-Buddy Poffin TEF 144\n4 Super Rod PAL 188\n4 Earthen Vessel PAR 163\n4 Night Stretcher SFA 61\n4 Switch SVI 194\n\nEnergy: 12\n12 Basic Energy SVE 1`
+          });
+        }
+      });
+      
+      // Sort combined results by metagame share descending
+      richDecks.sort((a: any, b: any) => b.share - a.share);
+      return res.json(richDecks);
+    }
+    
+    // Scraper returned empty or failed - fallback to our beautiful sorted list
+    richDecks.sort((a: any, b: any) => b.share - a.share);
+    return res.json(richDecks);
+  } catch (err) {
+    console.error('Error serving Pokemon meta decks API:', err);
+    res.json(metaDecks);
+  }
 });
 
 // Search Pokémon cards via pokemontcg.io with local fallbacks
@@ -410,28 +540,36 @@ app.get('/api/pokemon/sets', async (req, res) => {
     const response = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
     if (response.ok) {
       const data = await response.json();
-      const formatted = data.data.map((s: any) => ({
-        id: s.id,
-        name: s.name,
-        series: s.series,
-        releaseDate: s.releaseDate,
-        logo: s.images.logo,
-        symbol: s.images.symbol
-      }));
+      
+      // Filter for competitive format: Scarlet & Violet series or release date >= 2023-03-31
+      const formatted = data.data
+        .filter((s: any) => s.releaseDate >= '2023-03-31' || s.series === 'Scarlet & Violet')
+        .map((s: any) => ({
+          id: s.id,
+          name: s.name,
+          series: s.series,
+          releaseDate: s.releaseDate,
+          logo: s.images.logo,
+          symbol: s.images.symbol
+        }));
       return res.json(formatted);
     }
   } catch (err) {
     console.error('Error fetching sets from pokemontcg.io:', err);
   }
-  // Return robust, modern fallbacks if it fails
+  // Return robust, modern fallbacks if it fails (Scarlet & Violet standard sets)
   res.json([
-    { id: 'sv6', name: 'Twilight Masquerade', series: 'Scarlet & Violet' },
-    { id: 'sv5', name: 'Temporal Forces', series: 'Scarlet & Violet' },
-    { id: 'sv45', name: 'Paldean Fates', series: 'Scarlet & Violet' },
-    { id: 'sv4', name: 'Paradox Rift', series: 'Scarlet & Violet' },
-    { id: 'sv3', name: 'Obsidian Flames', series: 'Scarlet & Violet' },
-    { id: 'sv2', name: 'Paldea Evolved', series: 'Scarlet & Violet' },
-    { id: 'sv1', name: 'Scarlet & Violet', series: 'Scarlet & Violet' }
+    { id: 'pre', name: 'Prismatic Evolutions', series: 'Scarlet & Violet', releaseDate: '2025-01-17' },
+    { id: 'ssp', name: 'Surging Sparks', series: 'Scarlet & Violet', releaseDate: '2024-11-08' },
+    { id: 'scr', name: 'Stellar Crown', series: 'Scarlet & Violet', releaseDate: '2024-09-13' },
+    { id: 'sfa', name: 'Shrouded Fable', series: 'Scarlet & Violet', releaseDate: '2024-08-02' },
+    { id: 'sv6', name: 'Twilight Masquerade', series: 'Scarlet & Violet', releaseDate: '2024-05-24' },
+    { id: 'sv5', name: 'Temporal Forces', series: 'Scarlet & Violet', releaseDate: '2024-03-22' },
+    { id: 'sv45', name: 'Paldean Fates', series: 'Scarlet & Violet', releaseDate: '2024-01-26' },
+    { id: 'sv4', name: 'Paradox Rift', series: 'Scarlet & Violet', releaseDate: '2023-11-03' },
+    { id: 'sv3', name: 'Obsidian Flames', series: 'Scarlet & Violet', releaseDate: '2023-08-11' },
+    { id: 'sv2', name: 'Paldea Evolved', series: 'Scarlet & Violet', releaseDate: '2023-06-09' },
+    { id: 'sv1', name: 'Scarlet & Violet', series: 'Scarlet & Violet', releaseDate: '2023-03-31' }
   ]);
 });
 

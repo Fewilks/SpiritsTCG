@@ -54,12 +54,17 @@ export default function Collection({ currentMember }: CollectionProps) {
     fetchSets();
   }, []);
 
-  // Load user collection
+  // Collection tab state: 'my' (Minha Coleção) or 'team' (Acervo do Time)
+  const [collectionTab, setCollectionTab] = useState<'my' | 'team'>('my');
+
+  // Load user collection or whole team collection
   useEffect(() => {
     async function fetchCollection() {
       try {
         setLoading(true);
-        const q = query(collectionCol, where('ownerId', '==', currentMember.id));
+        const q = collectionTab === 'my'
+          ? query(collectionCol, where('ownerId', '==', currentMember.id))
+          : collectionCol;
         const snap = await getDocs(q);
         const cards = snap.docs.map(d => ({ id: d.id, ...d.data() } as CardItem));
         setCollectionCards(cards);
@@ -70,7 +75,7 @@ export default function Collection({ currentMember }: CollectionProps) {
       }
     }
     fetchCollection();
-  }, [currentMember]);
+  }, [currentMember, collectionTab]);
 
   // Handle live database search via backend API proxy
   const handleDatabaseSearch = async (e?: React.FormEvent) => {
@@ -109,10 +114,12 @@ export default function Collection({ currentMember }: CollectionProps) {
     if (!selectedCard) return;
 
     try {
-      // Check if card already exists in owner collection
-      const existingCard = collectionCards.find(c => c.id === selectedCard.id);
+      // Use composite, non-conflicting ID so multiple players can register same card
+      const userCardId = `${currentMember.id}_${selectedCard.id}`;
+      const cardRef = doc(db, 'collection', userCardId);
       
-      const cardRef = doc(db, 'collection', selectedCard.id);
+      // Look up if user already has this card in their local state
+      const existingCard = collectionCards.find(c => c.id === userCardId);
       
       if (existingCard) {
         // Just increment quantity
@@ -120,12 +127,12 @@ export default function Collection({ currentMember }: CollectionProps) {
         await updateDoc(cardRef, { quantity: newQty });
         
         setCollectionCards(prev => prev.map(c => 
-          c.id === selectedCard.id ? { ...c, quantity: newQty } : c
+          c.id === userCardId ? { ...c, quantity: newQty } : c
         ));
       } else {
         // Create new item
         const newCard: CardItem = {
-          id: selectedCard.id,
+          id: userCardId,
           name: selectedCard.name,
           imageUrl: selectedCard.imageUrl,
           setCode: selectedCard.setCode || 'sv1',
@@ -202,10 +209,10 @@ export default function Collection({ currentMember }: CollectionProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-850 pb-6">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span>🎁</span> Minha Coleção Spirits
+            <span>🎁</span> Acervo de Cartas Spirits
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Mantenha seu acervo de cartas Pokémon TCG atualizado e disponibilize para empréstimos para fortalecer o time!
+          <p className="text-sm text-slate-400 mt-1 font-sans">
+            Mantenha seu acervo de cartas Pokémon TCG atualizado e colabore com empréstimos de cartas para fortalecer o time!
           </p>
         </div>
         
@@ -217,9 +224,35 @@ export default function Collection({ currentMember }: CollectionProps) {
             setSearchQuery('');
             setShowAddModal(true);
           }}
-          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer transition-all duration-300 transform hover:-translate-y-0.5"
+          className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg font-bold text-sm flex items-center gap-2 shadow-lg shadow-purple-950/40 cursor-pointer transition-all duration-300 transform hover:-translate-y-0.5 shrink-0"
         >
           <PlusCircle className="w-5 h-5" /> Adicionar Nova Carta
+        </button>
+      </div>
+
+      {/* Tab Selectors */}
+      <div className="flex gap-2 bg-slate-900/40 p-1.5 rounded-xl border border-slate-800/65 max-w-sm">
+        <button
+          id="collection-tab-my"
+          onClick={() => setCollectionTab('my')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            collectionTab === 'my'
+              ? 'bg-purple-600 text-white shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+          }`}
+        >
+          👤 Minha Coleção
+        </button>
+        <button
+          id="collection-tab-team"
+          onClick={() => setCollectionTab('team')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            collectionTab === 'team'
+              ? 'bg-purple-600 text-white shadow'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+          }`}
+        >
+          👥 Acervo do Time
         </button>
       </div>
 
@@ -227,22 +260,28 @@ export default function Collection({ currentMember }: CollectionProps) {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <PokemonSprite name="charizard" size="lg" className="animate-spin" />
-          <p className="mt-4 text-purple-300 font-mono text-xs animate-pulse">Carregando acervo pessoal...</p>
+          <p className="mt-4 text-purple-300 font-mono text-xs animate-pulse">Carregando acervo...</p>
         </div>
       ) : collectionCards.length === 0 ? (
         <div className="text-center py-16 bg-slate-900/30 rounded-2xl border border-slate-800 p-8 flex flex-col items-center justify-center backdrop-blur-md" id="empty-collection-state">
           <div className="text-5xl mb-4">🎴</div>
-          <h3 className="text-lg font-bold text-white">Sua coleção está vazia!</h3>
+          <h3 className="text-lg font-bold text-white">
+            {collectionTab === 'my' ? 'Sua coleção está vazia!' : 'Nenhuma carta registrada no time!'}
+          </h3>
           <p className="text-sm text-slate-400 mt-1 max-w-sm font-sans leading-relaxed">
-            Cadastre suas cartas ex, VSTAR e cartas de suporte/treinadores mais raras para que seus companheiros de time possam pegá-las emprestadas!
+            {collectionTab === 'my' 
+              ? 'Cadastre suas cartas ex, VSTAR e treinadores mais raros para que seus companheiros de time possam vê-los!'
+              : 'Nenhum integrante cadastrou cartas para compartilhar ainda.'}
           </p>
-          <button
-            id="empty-state-add"
-            onClick={() => setShowAddModal(true)}
-            className="mt-6 px-5 py-2.5 bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-bold text-sm cursor-pointer shadow-lg shadow-purple-950/30 transition-all duration-300"
-          >
-            Adicionar Minha Primeira Carta
-          </button>
+          {collectionTab === 'my' && (
+            <button
+              id="empty-state-add"
+              onClick={() => setShowAddModal(true)}
+              className="mt-6 px-5 py-2.5 bg-gradient-to-r from-purple-650 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl font-bold text-sm cursor-pointer shadow-lg shadow-purple-950/30 transition-all duration-300"
+            >
+              Adicionar Minha Primeira Carta
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6" id="collection-grid">
@@ -287,53 +326,69 @@ export default function Collection({ currentMember }: CollectionProps) {
                 </div>
 
                 {/* Interactive Controls */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60">
-                  {/* Qty increment button */}
-                  <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-850">
-                    <button 
-                      id={`qty-dec-${card.id}`}
-                      onClick={() => handleUpdateQty(card.id, -1)}
-                      className="text-slate-400 hover:text-white font-black text-xs cursor-pointer px-1"
-                    >
-                      -
-                    </button>
-                    <span className="text-white text-xs font-bold font-mono">{card.quantity}</span>
-                    <button 
-                      id={`qty-inc-${card.id}`}
-                      onClick={() => handleUpdateQty(card.id, 1)}
-                      className="text-slate-400 hover:text-white font-black text-xs cursor-pointer px-1"
-                    >
-                      +
-                    </button>
-                  </div>
+                {card.ownerId === currentMember.id ? (
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60">
+                    {/* Qty increment button */}
+                    <div className="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-850">
+                      <button 
+                        id={`qty-dec-${card.id}`}
+                        onClick={() => handleUpdateQty(card.id, -1)}
+                        className="text-slate-400 hover:text-white font-black text-xs cursor-pointer px-1"
+                      >
+                        -
+                      </button>
+                      <span className="text-white text-xs font-bold font-mono">{card.quantity}</span>
+                      <button 
+                        id={`qty-inc-${card.id}`}
+                        onClick={() => handleUpdateQty(card.id, 1)}
+                        className="text-slate-400 hover:text-white font-black text-xs cursor-pointer px-1"
+                      >
+                        +
+                      </button>
+                    </div>
 
-                  {/* Settings toggle */}
-                  <div className="flex gap-1.5">
-                    <button
-                      key={`toggle-lend-${card.id}`}
-                      id={`toggle-lend-${card.id}`}
-                      onClick={() => handleToggleLendable(card.id, card.isLendable)}
-                      title={card.isLendable ? 'Marcar como privado' : 'Tornar disponível para empréstimo'}
-                      className={`p-1.5 rounded-lg transition-all cursor-pointer border ${
-                        card.isLendable 
-                          ? 'bg-emerald-950/50 hover:bg-emerald-900 border-emerald-500/20 text-emerald-400' 
-                          : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400'
-                      }`}
-                    >
-                      <Users className="w-3.5 h-3.5" />
-                    </button>
+                    {/* Settings toggle */}
+                    <div className="flex gap-1.5">
+                      <button
+                        key={`toggle-lend-${card.id}`}
+                        id={`toggle-lend-${card.id}`}
+                        onClick={() => handleToggleLendable(card.id, card.isLendable)}
+                        title={card.isLendable ? 'Marcar como privado' : 'Tornar disponível para empréstimo'}
+                        className={`p-1.5 rounded-lg transition-all cursor-pointer border ${
+                          card.isLendable 
+                            ? 'bg-emerald-950/50 hover:bg-emerald-900 border-emerald-500/20 text-emerald-400' 
+                            : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-400'
+                        }`}
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                      </button>
 
-                    <button
-                      key={`delete-card-${card.id}`}
-                      id={`delete-card-${card.id}`}
-                      onClick={() => handleRemoveCard(card.id)}
-                      title="Deletar carta"
-                      className="p-1.5 bg-rose-955 hover:bg-rose-900 border border-rose-500/10 text-rose-400 rounded-lg transition-all cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                      <button
+                        key={`delete-card-${card.id}`}
+                        id={`delete-card-${card.id}`}
+                        onClick={() => handleRemoveCard(card.id)}
+                        title="Deletar carta"
+                        className="p-1.5 bg-rose-955 hover:bg-rose-900 border border-rose-500/10 text-rose-400 rounded-lg transition-all cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-850/60 text-xs">
+                    <div className="text-slate-400 truncate max-w-[100px] font-sans font-medium flex items-center gap-1" title={card.ownerName}>
+                      👤 {card.ownerName}
+                    </div>
+                    
+                    <div className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                      card.isLendable
+                        ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20'
+                        : 'bg-rose-950/40 text-rose-400 border-rose-500/20'
+                    }`}>
+                      {card.isLendable ? 'Disponível' : 'Reservado'}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}
