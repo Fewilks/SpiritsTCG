@@ -43,6 +43,8 @@ export default function Matches({ currentMember }: MatchesProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [allDecks, setAllDecks] = useState<DeckRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMatches, setSelectedMatches] = useState<string[]>([]);
+  const [showOnlyMine, setShowOnlyMine] = useState<boolean>(false);
 
   // Filter conditions
   const [filterResult, setFilterResult] = useState<string>('all');
@@ -111,35 +113,93 @@ export default function Matches({ currentMember }: MatchesProps) {
     loadMatches();
   }, [currentMember]);
 
-  const handleClearHistory = async () => {
-    if (!window.confirm('Tem certeza que deseja apagar todo o histórico de partidas do time e zerar o placar (vitórias/derrotas) de todos os membros?')) {
+  const handleToggleSelectMatch = (matchId: string) => {
+    setSelectedMatches(prev => 
+      prev.includes(matchId) 
+        ? prev.filter(id => id !== matchId) 
+        : [...prev, matchId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const allFilteredIds = filteredMatches.map(m => m.id);
+    const areAllSelected = allFilteredIds.every(id => selectedMatches.includes(id));
+    if (areAllSelected) {
+      setSelectedMatches(prev => prev.filter(id => !allFilteredIds.includes(id)));
+    } else {
+      setSelectedMatches(prev => {
+        const union = new Set([...prev, ...allFilteredIds]);
+        return Array.from(union);
+      });
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedMatches.length === 0) return;
+    
+    if (!window.confirm(`Tem certeza que deseja apagar as ${selectedMatches.length} partidas selecionadas? Isso irá recalcular as estatísticas dos membros correspondentes.`)) {
       return;
     }
+    
     try {
       setLoading(true);
       
-      // Delete all documents in matches collection
-      const matchSnap = await getDocs(matchesCol);
-      for (const d of matchSnap.docs) {
-        await deleteDoc(doc(db, 'matches', d.id));
-      }
-      setMatches([]);
-
-      // Zero out stats for all members in the roster
       const memSnap = await getDocs(membersCol);
-      for (const d of memSnap.docs) {
-        await updateDoc(doc(db, 'members', d.id), {
-          wins: 0,
-          losses: 0,
-          draws: 0
-        });
+      const latestMembers = memSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+      
+      const memberStatsAdjustments: { [memberId: string]: { wins: number; losses: number; draws: number } } = {};
+      
+      for (const matchId of selectedMatches) {
+        const match = matches.find(m => m.id === matchId);
+        if (!match) continue;
+        
+        await deleteDoc(doc(db, 'matches', matchId));
+        
+        // P1 adjustment (subtract stats)
+        const p1Id = match.player1Id;
+        if (!memberStatsAdjustments[p1Id]) {
+          memberStatsAdjustments[p1Id] = { wins: 0, losses: 0, draws: 0 };
+        }
+        memberStatsAdjustments[p1Id].wins -= (match.result === 'win' ? 1 : 0);
+        memberStatsAdjustments[p1Id].losses -= (match.result === 'loss' ? 1 : 0);
+        memberStatsAdjustments[p1Id].draws -= (match.result === 'draw' ? 1 : 0);
+        
+        // P2 adjustment (subtract stats)
+        if (match.player2IsMember && match.player2Id) {
+          const p2Id = match.player2Id;
+          if (!memberStatsAdjustments[p2Id]) {
+            memberStatsAdjustments[p2Id] = { wins: 0, losses: 0, draws: 0 };
+          }
+          const p2Result = match.result === 'win' ? 'loss' : match.result === 'loss' ? 'win' : 'draw';
+          memberStatsAdjustments[p2Id].wins -= (p2Result === 'win' ? 1 : 0);
+          memberStatsAdjustments[p2Id].losses -= (p2Result === 'loss' ? 1 : 0);
+          memberStatsAdjustments[p2Id].draws -= (p2Result === 'draw' ? 1 : 0);
+        }
       }
-
-      alert('Histórico limpo e estatísticas do time zeradas com sucesso!');
+      
+      for (const [memberId, adjustment] of Object.entries(memberStatsAdjustments)) {
+        const existingMember = latestMembers.find(m => m.id === memberId);
+        if (existingMember) {
+          const updatedWins = Math.max(0, existingMember.wins + adjustment.wins);
+          const updatedLosses = Math.max(0, existingMember.losses + adjustment.losses);
+          const updatedDraws = Math.max(0, existingMember.draws + adjustment.draws);
+          
+          await updateDoc(doc(db, 'members', memberId), {
+            wins: updatedWins,
+            losses: updatedLosses,
+            draws: updatedDraws
+          });
+        }
+      }
+      
+      setMatches(prev => prev.filter(m => !selectedMatches.includes(m.id)));
+      setSelectedMatches([]);
+      
+      alert('Partidas apagadas e placares de líderes recalculados com sucesso!');
       window.location.reload();
     } catch (err) {
-      console.error('Error clearing matches history:', err);
-      alert('Ocorreu um erro ao limpar o histórico.');
+      console.error('Error deleting selected matches:', err);
+      alert('Ocorreu um erro ao apagar as partidas selecionadas.');
     } finally {
       setLoading(false);
     }
@@ -231,7 +291,11 @@ export default function Matches({ currentMember }: MatchesProps) {
   const filteredMatches = matches.filter(match => {
     const matchesResult = filterResult === 'all' || match.result === filterResult;
     const matchesFormat = filterFormat === 'all' || match.format === filterFormat;
-    return matchesResult && matchesFormat;
+    const matchesMine = !showOnlyMine || (
+      match.player1Id === currentMember.id || 
+      (match.player2IsMember && match.player2Id === currentMember.id)
+    );
+    return matchesResult && matchesFormat && matchesMine;
   });
 
   return (
@@ -249,13 +313,15 @@ export default function Matches({ currentMember }: MatchesProps) {
         </div>
         
         <div className="flex gap-3">
-          <button
-            id="btn-clear-history"
-            onClick={handleClearHistory}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-lg font-bold text-sm flex items-center gap-2 border border-slate-700 cursor-pointer transition-all duration-300"
-          >
-            🗑️ Limpar Histórico
-          </button>
+          {selectedMatches.length > 0 && (
+            <button
+              id="btn-delete-selected"
+              onClick={handleDeleteSelected}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-550 text-white rounded-lg font-bold text-sm flex items-center gap-2 cursor-pointer transition-all duration-300 shadow-lg shadow-rose-950/40"
+            >
+              🗑️ Apagar Selecionadas ({selectedMatches.length})
+            </button>
+          )}
           
           <button
             id="btn-open-register-match"
@@ -306,6 +372,28 @@ export default function Matches({ currentMember }: MatchesProps) {
               <option value="MD5">Melhor de 5 (MD5)</option>
             </select>
           </div>
+
+          {/* My Results Toggle */}
+          <label className="flex items-center gap-2 cursor-pointer select-none border border-slate-800 bg-slate-950/40 px-3 py-1 rounded-md hover:border-purple-500/30 transition-all text-xs text-slate-300">
+            <input
+              type="checkbox"
+              id="filter-only-mine"
+              checked={showOnlyMine}
+              onChange={(e) => setShowOnlyMine(e.target.checked)}
+              className="accent-purple-500 rounded cursor-pointer w-3.5 h-3.5"
+            />
+            <span>Apenas minhas partidas</span>
+          </label>
+
+          {filteredMatches.length > 0 && (
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-md text-xs text-slate-300 transition-all hover:text-white font-bold cursor-pointer"
+            >
+              {filteredMatches.every(m => selectedMatches.includes(m.id)) ? 'Desmarcar Todas' : 'Selecionar Todas'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -332,11 +420,19 @@ export default function Matches({ currentMember }: MatchesProps) {
               <div className="space-y-4">
                 {/* Players comparison header */}
                 <div className="flex items-center justify-between gap-2 border-b border-slate-850 pb-3">
-                  <div className="flex items-center gap-3">
-                    <PokemonSprite name={match.player1Sprite} size="sm" />
-                    <div>
-                      <h3 className="text-white font-bold text-sm">{match.player1Name}</h3>
-                      <span className="text-[10px] text-purple-400 font-bold bg-purple-950/40 px-1.5 py-0.5 rounded font-mono">Spirits Team</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedMatches.includes(match.id)}
+                      onChange={() => handleToggleSelectMatch(match.id)}
+                      className="accent-purple-500 rounded cursor-pointer w-4 h-4 mr-1 shrink-0"
+                    />
+                    <div className="flex items-center gap-3">
+                      <PokemonSprite name={match.player1Sprite} size="sm" />
+                      <div>
+                        <h3 className="text-white font-bold text-sm">{match.player1Name}</h3>
+                        <span className="text-[10px] text-purple-400 font-bold bg-purple-950/40 px-1.5 py-0.5 rounded font-mono">Spirits Team</span>
+                      </div>
                     </div>
                   </div>
 
