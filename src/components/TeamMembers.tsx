@@ -110,7 +110,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
         losses: 0,
         draws: 0,
         favoriteCard: 'Charizard ex',
-        favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
+        favoriteCardImage: 'https://images.pokemontcg.io/sv3/125_hires.png',
         joinDate: new Date().toISOString().split('T')[0]
       };
 

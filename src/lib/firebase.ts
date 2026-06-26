@@ -47,7 +47,7 @@ export async function seedDatabaseIfEmpty() {
         losses: 0,
         draws: 0,
         favoriteCard: 'Charizard ex',
-        favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
+        favoriteCardImage: 'https://images.pokemontcg.io/sv3/125_hires.png',
         joinDate: '2025-01-10'
       }
     ];
@@ -61,7 +61,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'sv3-125',
         name: 'Charizard ex',
-        imageUrl: 'https://images.pokemontcg.io/sv3-125.png',
+        imageUrl: 'https://images.pokemontcg.io/sv3/125.png',
         setCode: 'sv3',
         setName: 'Obsidian Flames',
         setNumber: '125',
@@ -76,7 +76,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'sv4-163',
         name: 'Roaring Moon ex',
-        imageUrl: 'https://images.pokemontcg.io/sv4-163.png',
+        imageUrl: 'https://images.pokemontcg.io/sv4/163.png',
         setCode: 'sv4',
         setName: 'Paradox Rift',
         setNumber: '163',
@@ -91,7 +91,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'sv1-86',
         name: 'Gardevoir ex',
-        imageUrl: 'https://images.pokemontcg.io/sv1-86.png',
+        imageUrl: 'https://images.pokemontcg.io/sv1/86.png',
         setCode: 'sv1',
         setName: 'Scarlet & Violet Base Set',
         setNumber: '86',
@@ -106,7 +106,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'sv3-135',
         name: 'Pidgeot ex',
-        imageUrl: 'https://images.pokemontcg.io/sv3-135.png',
+        imageUrl: 'https://images.pokemontcg.io/sv3/135.png',
         setCode: 'sv3',
         setName: 'Obsidian Flames',
         setNumber: '135',
@@ -121,7 +121,7 @@ export async function seedDatabaseIfEmpty() {
       {
         id: 'pgo-55',
         name: 'Snorlax',
-        imageUrl: 'https://images.pokemontcg.io/pgo-55.png',
+        imageUrl: 'https://images.pokemontcg.io/pgo/55.png',
         setCode: 'pgo',
         setName: 'Pokémon GO',
         setNumber: '55',
@@ -145,7 +145,7 @@ export async function seedDatabaseIfEmpty() {
         id: 'loan-1',
         cardId: 'sv4-163',
         cardName: 'Roaring Moon ex',
-        cardImageUrl: 'https://images.pokemontcg.io/sv4-163.png',
+        cardImageUrl: 'https://images.pokemontcg.io/sv4/163.png',
         ownerId: 'member-2',
         ownerName: 'Thiago Pereira',
         borrowerId: 'member-4',
@@ -159,7 +159,7 @@ export async function seedDatabaseIfEmpty() {
         id: 'loan-2',
         cardId: 'sv3-135',
         cardName: 'Pidgeot ex',
-        cardImageUrl: 'https://images.pokemontcg.io/sv3-135.png',
+        cardImageUrl: 'https://images.pokemontcg.io/sv3/135.png',
         ownerId: 'member-1',
         ownerName: 'Guilherme Silva',
         borrowerId: 'member-3',
@@ -212,16 +212,16 @@ Treinador: 10
 Energia: 1
 6 Basic Fire Energy SVE 2`,
         parsedCards: [
-          { name: 'Charizard ex', count: 3, set: 'OBF', number: '125', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3-125.png' },
-          { name: 'Charmeleon', count: 2, set: 'OBF', number: '124', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3-124.png' },
-          { name: 'Charmander', count: 3, set: 'OBF', number: '26', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3-26.png' },
-          { name: 'Pidgeot ex', count: 2, set: 'OBF', number: '225', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3-225.png' },
-          { name: 'Pidgey', count: 2, set: 'OBF', number: '207', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3-207.png' },
-          { name: 'Lumineon V', count: 1, set: 'BRS', number: '40', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/swsh9-40.png' },
-          { name: 'Iono', count: 4, set: 'PAF', number: '80', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv45-80.png' },
-          { name: 'Arven', count: 4, set: 'SVI', number: '166', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv1-166.png' },
-          { name: 'Prime Catcher', count: 1, set: 'TEF', number: '157', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv5-157.png' },
-          { name: 'Basic Fire Energy', count: 6, set: 'SVE', number: '2', type: 'Energia', imageUrl: 'https://images.pokemontcg.io/sve-2.png' }
+          { name: 'Charizard ex', count: 3, set: 'OBF', number: '125', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3/125.png' },
+          { name: 'Charmeleon', count: 2, set: 'OBF', number: '124', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3/124.png' },
+          { name: 'Charmander', count: 3, set: 'OBF', number: '26', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3/26.png' },
+          { name: 'Pidgeot ex', count: 2, set: 'OBF', number: '225', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3/225.png' },
+          { name: 'Pidgey', count: 2, set: 'OBF', number: '207', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/sv3/207.png' },
+          { name: 'Lumineon V', count: 1, set: 'BRS', number: '40', type: 'Pokémon', imageUrl: 'https://images.pokemontcg.io/swsh9/40.png' },
+          { name: 'Iono', count: 4, set: 'PAF', number: '80', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv45/80.png' },
+          { name: 'Arven', count: 4, set: 'SVI', number: '166', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv1/166.png' },
+          { name: 'Prime Catcher', count: 1, set: 'TEF', number: '157', type: 'Treinador', imageUrl: 'https://images.pokemontcg.io/sv5/157.png' },
+          { name: 'Basic Fire Energy', count: 6, set: 'SVE', number: '2', type: 'Energia', imageUrl: 'https://images.pokemontcg.io/sve/2.png' }
         ],
         createdAt: '2026-06-20T11:00:00Z'
       }

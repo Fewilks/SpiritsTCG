@@ -154,7 +154,7 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
             losses: Math.floor(Math.random() * 15) + 5,
             draws: Math.floor(Math.random() * 6),
             favoriteCard: demoFavCard,
-            favoriteCardImage: 'https://images.pokemontcg.io/sv3-125_hires.png',
+            favoriteCardImage: 'https://images.pokemontcg.io/sv3/125_hires.png',
             joinDate: '2025-01-10'
           };
 

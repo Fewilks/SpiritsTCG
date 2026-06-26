@@ -563,9 +563,9 @@ export default function Decks({ currentMember }: DecksProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="limitless-meta-grid">
-              {metaDecks.map((deck) => (
+              {metaDecks.map((deck, idx) => (
                 <div 
-                  key={deck.name} 
+                  key={`${deck.name}-${idx}`} 
                   className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-500/40 transition-all duration-300 shadow-xl relative overflow-hidden group"
                 >
                   {/* Background decorative gradient */}

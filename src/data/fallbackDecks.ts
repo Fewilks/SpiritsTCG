@@ -6,7 +6,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Pikachu ex / Latias ex / Magneton',
     share: 18.2,
     winRate: 55.4,
-    imageUrl: 'https://images.pokemontcg.io/sv8-54.png',
+    imageUrl: 'https://images.pokemontcg.io/sv8/54.png',
     updatedAt: '2024-11-08',
     description: 'O deck do momento após Surging Sparks. Pikachu ex bate 300 de dano e previne nocaute com vida cheia (habilidade Resolute Heart), energizado instantaneamente pela habilidade Overcharge do Magneton.',
     cards: [
@@ -21,7 +21,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Ceruledge ex / Dusknoir / Pecharunt',
     share: 12.8,
     winRate: 52.8,
-    imageUrl: 'https://images.pokemontcg.io/ssp-34.png',
+    imageUrl: 'https://images.pokemontcg.io/ssp/34.png',
     updatedAt: '2024-11-08',
     description: 'Descarte em massa de energias usando Earthen Vessel e Professor Sada. O ataque de Ceruledge ex causa 30 de dano para cada energia na pilha de descarte, atingindo números avassaladores rapidamente.',
     cards: [
@@ -36,7 +36,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Terapagos ex / Pidgeot ex / Dusknoir',
     share: 15.1,
     winRate: 53.6,
-    imageUrl: 'https://images.pokemontcg.io/scr-128.png',
+    imageUrl: 'https://images.pokemontcg.io/scr/128.png',
     updatedAt: '2024-09-13',
     description: 'Utiliza Area Zero Underdepths para expandir o banco para 8 Pokémons, aumentando o dano do Unified Beatdown de Terapagos ex para 240. Dusknoir oferece nocautes surpresa com Cursed Blast.',
     cards: [
@@ -51,7 +51,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Dragapult ex / Pidgeot ex',
     share: 10.4,
     winRate: 51.9,
-    imageUrl: 'https://images.pokemontcg.io/twm-130.png',
+    imageUrl: 'https://images.pokemontcg.io/twm/130.png',
     updatedAt: '2024-05-24',
     description: 'Dano cirúrgico. Com o ataque Phantom Dive, causa 200 de dano no ativo e distribui 6 contadores de dano no banco adversário. Pidgeot ex oferece busca irrestrita.',
     cards: [
@@ -66,7 +66,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Raging Bolt ex / Teal Mask Ogerpon',
     share: 13.2,
     winRate: 52.9,
-    imageUrl: 'https://images.pokemontcg.io/tef-123.png',
+    imageUrl: 'https://images.pokemontcg.io/tef/123.png',
     updatedAt: '2024-03-22',
     description: 'Dano explosivo ilimitado. Descarta energias em jogo para causar 70 de dano por energia, utilizando Ogerpon para acelerar energias de Grama e puxar cartas adicionais.',
     cards: [
@@ -81,7 +81,7 @@ export const fallbackMetaDecks: MetaDeck[] = [
     archetype: 'Regidrago VSTAR / Teal Mask Ogerpon',
     share: 14.5,
     winRate: 53.8,
-    imageUrl: 'https://images.pokemontcg.io/sit-136.png',
+    imageUrl: 'https://images.pokemontcg.io/sit/136.png',
     updatedAt: '2023-06-09',
     description: 'Extremamente versátil. Usa o ataque Apex Dragon para copiar ataques de qualquer dragão no descarte (como Giratina VSTAR ou Noivern ex), energizado rapidamente por Teal Mask Ogerpon ex.',
     cards: [

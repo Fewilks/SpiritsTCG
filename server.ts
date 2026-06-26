@@ -34,7 +34,7 @@ const metaDecks = [
     archetype: 'Pikachu ex / Latias ex / Magneton',
     share: 18.2,
     winRate: 55.4,
-    imageUrl: 'https://images.pokemontcg.io/sv8-54.png',
+    imageUrl: 'https://images.pokemontcg.io/sv8/54.png',
     updatedAt: '2024-11-08',
     description: 'O deck do momento após Surging Sparks. Pikachu ex bate 300 de dano e previne nocaute com vida cheia (habilidade Resolute Heart), energizado instantaneamente pela habilidade Overcharge do Magneton.',
     cards: [
@@ -76,7 +76,7 @@ Energy: 12
     archetype: 'Regidrago VSTAR / Teal Mask Ogerpon',
     share: 14.5,
     winRate: 53.8,
-    imageUrl: 'https://images.pokemontcg.io/sit-136.png',
+    imageUrl: 'https://images.pokemontcg.io/sit/136.png',
     updatedAt: '2023-06-09',
     description: 'Extremamente versátil. Usa o ataque Apex Dragon para copiar ataques de qualquer dragão no descarte (como Giratina VSTAR ou Noivern ex), energizado rapidamente por Teal Mask Ogerpon ex.',
     cards: [
@@ -122,7 +122,7 @@ Energy: 12
     archetype: 'Raging Bolt ex / Teal Mask Ogerpon',
     share: 13.2,
     winRate: 52.9,
-    imageUrl: 'https://images.pokemontcg.io/tef-123.png',
+    imageUrl: 'https://images.pokemontcg.io/tef/123.png',
     updatedAt: '2024-03-22',
     description: 'Dano explosivo ilimitado. Descarta energias em jogo para causar 70 de dano por energia, utilizando Ogerpon para acelerar energias de Grama e puxar cartas adicionais.',
     cards: [
@@ -168,7 +168,7 @@ Energy: 13
     archetype: 'Terapagos ex / Pidgeot ex / Dusknoir',
     share: 15.1,
     winRate: 53.6,
-    imageUrl: 'https://images.pokemontcg.io/scr-128.png',
+    imageUrl: 'https://images.pokemontcg.io/scr/128.png',
     updatedAt: '2024-09-13',
     description: 'Utiliza Area Zero Underdepths para expandir o banco para 8 Pokémons, aumentando o dano do Unified Beatdown de Terapagos ex para 240. Dusknoir oferece nocautes surpresa com Cursed Blast.',
     cards: [
@@ -211,7 +211,7 @@ Energy: 12
     archetype: 'Ceruledge ex / Dusknoir / Pecharunt',
     share: 12.8,
     winRate: 52.8,
-    imageUrl: 'https://images.pokemontcg.io/ssp-34.png',
+    imageUrl: 'https://images.pokemontcg.io/ssp/34.png',
     updatedAt: '2024-11-08',
     description: 'Descarte em massa de energias usando Earthen Vessel e Professor Sada. O ataque de Ceruledge ex causa 30 de dano para cada energia na pilha de descarte, atingindo números avassaladores rapidamente.',
     cards: [
@@ -251,7 +251,7 @@ Energy: 12
     archetype: 'Dragapult ex / Pidgeot ex',
     share: 10.4,
     winRate: 51.9,
-    imageUrl: 'https://images.pokemontcg.io/twm-130.png',
+    imageUrl: 'https://images.pokemontcg.io/twm/130.png',
     updatedAt: '2024-05-24',
     description: 'Dano cirúrgico. Com o ataque Phantom Dive, causa 200 de dano no ativo e distribui 6 contadores de dano no banco adversário. Pidgeot ex oferece busca irrestrita.',
     cards: [
@@ -295,28 +295,28 @@ Energy: 10
 
 // 2. Default iconic cards database to fallback on when external APIs fail
 const fallbackCards = [
-  { id: 'sv3-125', name: 'Charizard ex', imageUrl: 'https://images.pokemontcg.io/sv3-125.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '125' },
-  { id: 'sv1-81', name: 'Miraidon ex', imageUrl: 'https://images.pokemontcg.io/sv1-81.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '81' },
-  { id: 'sv1-86', name: 'Gardevoir ex', imageUrl: 'https://images.pokemontcg.io/sv1-86.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '86' },
-  { id: 'sv4-163', name: 'Roaring Moon ex', imageUrl: 'https://images.pokemontcg.io/sv4-163.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '163' },
-  { id: 'sv3-135', name: 'Pidgeot ex', imageUrl: 'https://images.pokemontcg.io/sv3-135.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '135' },
-  { id: 'sv5-157', name: 'Prime Catcher', imageUrl: 'https://images.pokemontcg.io/sv5-157.png', setCode: 'sv5', setName: 'Temporal Forces', setNumber: '157' },
-  { id: 'pgo-55', name: 'Snorlax', imageUrl: 'https://images.pokemontcg.io/pgo-55.png', setCode: 'pgo', setName: 'Pokémon GO', setNumber: '55' },
-  { id: 'sv3-124', name: 'Charmeleon', imageUrl: 'https://images.pokemontcg.io/sv3-124.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '124' },
-  { id: 'sv3-26', name: 'Charmander', imageUrl: 'https://images.pokemontcg.io/sv3-26.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '26' },
-  { id: 'sv3-207', name: 'Pidgey', imageUrl: 'https://images.pokemontcg.io/sv3-207.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '207' },
-  { id: 'sv45-80', name: 'Iono', imageUrl: 'https://images.pokemontcg.io/sv45-80.png', setCode: 'sv45', setName: 'Paldean Fates', setNumber: '80' },
-  { id: 'sv1-166', name: 'Arven', imageUrl: 'https://images.pokemontcg.io/sv1-166.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '166' },
-  { id: 'sv1-172', name: 'Boss\'s Orders', imageUrl: 'https://images.pokemontcg.io/sv1-172.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '172' },
-  { id: 'sv1-196', name: 'Ultra Ball', imageUrl: 'https://images.pokemontcg.io/sv1-196.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '196' },
-  { id: 'sv1-191', name: 'Rare Candy', imageUrl: 'https://images.pokemontcg.io/sv1-191.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '191' },
-  { id: 'sv6-123', name: 'Raging Bolt ex', imageUrl: 'https://images.pokemontcg.io/sv6-123.png', setCode: 'sv6', setName: 'Twilight Masquerade', setNumber: '123' },
-  { id: 'sv6-25', name: 'Teal Mask Ogerpon ex', imageUrl: 'https://images.pokemontcg.io/sv6-25.png', setCode: 'sv6', setName: 'Twilight Masquerade', setNumber: '25' },
-  { id: 'sv4-170', name: 'Professor Sada\'s Vitality', imageUrl: 'https://images.pokemontcg.io/sv4-170.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '170' },
-  { id: 'sv4-163-item', name: 'Earthen Vessel', imageUrl: 'https://images.pokemontcg.io/sv4-163.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '163' },
-  { id: 'sit-139', name: 'Lugia VSTAR', imageUrl: 'https://images.pokemontcg.io/sit-139.png', setCode: 'sit', setName: 'Silver Tempest', setNumber: '139' },
-  { id: 'sit-147', name: 'Archeops', imageUrl: 'https://images.pokemontcg.io/sit-147.png', setCode: 'sit', setName: 'Silver Tempest', setNumber: '147' },
-  { id: 'sv5-137', name: 'Cinccino', imageUrl: 'https://images.pokemontcg.io/sv5-137.png', setCode: 'sv5', setName: 'Temporal Forces', setNumber: '137' }
+  { id: 'sv3-125', name: 'Charizard ex', imageUrl: 'https://images.pokemontcg.io/sv3/125.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '125' },
+  { id: 'sv1-81', name: 'Miraidon ex', imageUrl: 'https://images.pokemontcg.io/sv1/81.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '81' },
+  { id: 'sv1-86', name: 'Gardevoir ex', imageUrl: 'https://images.pokemontcg.io/sv1/86.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '86' },
+  { id: 'sv4-163', name: 'Roaring Moon ex', imageUrl: 'https://images.pokemontcg.io/sv4/163.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '163' },
+  { id: 'sv3-135', name: 'Pidgeot ex', imageUrl: 'https://images.pokemontcg.io/sv3/135.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '135' },
+  { id: 'sv5-157', name: 'Prime Catcher', imageUrl: 'https://images.pokemontcg.io/sv5/157.png', setCode: 'sv5', setName: 'Temporal Forces', setNumber: '157' },
+  { id: 'pgo-55', name: 'Snorlax', imageUrl: 'https://images.pokemontcg.io/pgo/55.png', setCode: 'pgo', setName: 'Pokémon GO', setNumber: '55' },
+  { id: 'sv3-124', name: 'Charmeleon', imageUrl: 'https://images.pokemontcg.io/sv3/124.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '124' },
+  { id: 'sv3-26', name: 'Charmander', imageUrl: 'https://images.pokemontcg.io/sv3/26.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '26' },
+  { id: 'sv3-207', name: 'Pidgey', imageUrl: 'https://images.pokemontcg.io/sv3/207.png', setCode: 'sv3', setName: 'Obsidian Flames', setNumber: '207' },
+  { id: 'sv45-80', name: 'Iono', imageUrl: 'https://images.pokemontcg.io/sv45/80.png', setCode: 'sv45', setName: 'Paldean Fates', setNumber: '80' },
+  { id: 'sv1-166', name: 'Arven', imageUrl: 'https://images.pokemontcg.io/sv1/166.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '166' },
+  { id: 'sv1-172', name: 'Boss\'s Orders', imageUrl: 'https://images.pokemontcg.io/sv1/172.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '172' },
+  { id: 'sv1-196', name: 'Ultra Ball', imageUrl: 'https://images.pokemontcg.io/sv1/196.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '196' },
+  { id: 'sv1-191', name: 'Rare Candy', imageUrl: 'https://images.pokemontcg.io/sv1/191.png', setCode: 'sv1', setName: 'Scarlet & Violet Base Set', setNumber: '191' },
+  { id: 'sv6-123', name: 'Raging Bolt ex', imageUrl: 'https://images.pokemontcg.io/sv6/123.png', setCode: 'sv6', setName: 'Twilight Masquerade', setNumber: '123' },
+  { id: 'sv6-25', name: 'Teal Mask Ogerpon ex', imageUrl: 'https://images.pokemontcg.io/sv6/25.png', setCode: 'sv6', setName: 'Twilight Masquerade', setNumber: '25' },
+  { id: 'sv4-170', name: 'Professor Sada\'s Vitality', imageUrl: 'https://images.pokemontcg.io/sv4/170.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '170' },
+  { id: 'sv4-163-item', name: 'Earthen Vessel', imageUrl: 'https://images.pokemontcg.io/sv4/163.png', setCode: 'sv4', setName: 'Paradox Rift', setNumber: '163' },
+  { id: 'sit-139', name: 'Lugia VSTAR', imageUrl: 'https://images.pokemontcg.io/sit/139.png', setCode: 'sit', setName: 'Silver Tempest', setNumber: '139' },
+  { id: 'sit-147', name: 'Archeops', imageUrl: 'https://images.pokemontcg.io/sit/147.png', setCode: 'sit', setName: 'Silver Tempest', setNumber: '147' },
+  { id: 'sv5-137', name: 'Cinccino', imageUrl: 'https://images.pokemontcg.io/sv5/137.png', setCode: 'sv5', setName: 'Temporal Forces', setNumber: '137' }
 ];
 
 // Helper to look up an image link or search pokemontcg.io
@@ -518,28 +518,28 @@ app.get('/api/pokemon/meta', async (req, res) => {
             }));
 
             // Choose image
-            let imageUrl = 'https://images.pokemontcg.io/sv1-166.png';
+            let imageUrl = 'https://images.pokemontcg.io/sv1/166.png';
             if (item.decklist.pokemon && item.decklist.pokemon.length > 0) {
               const firstPokemon = item.decklist.pokemon[0];
               const nameLower = firstPokemon.name.toLowerCase();
-              if (nameLower.includes('pikachu')) imageUrl = 'https://images.pokemontcg.io/sv8-54.png';
-              else if (nameLower.includes('charizard')) imageUrl = 'https://images.pokemontcg.io/sv3-125.png';
-              else if (nameLower.includes('gholdengo')) imageUrl = 'https://images.pokemontcg.io/sv4-139.png';
-              else if (nameLower.includes('moon')) imageUrl = 'https://images.pokemontcg.io/sv4-163.png';
-              else if (nameLower.includes('gardevoir')) imageUrl = 'https://images.pokemontcg.io/sv1-86.png';
-              else if (nameLower.includes('bolt')) imageUrl = 'https://images.pokemontcg.io/tef-123.png';
-              else if (nameLower.includes('drago')) imageUrl = 'https://images.pokemontcg.io/sit-136.png';
-              else if (nameLower.includes('terapagos')) imageUrl = 'https://images.pokemontcg.io/scr-128.png';
-              else if (nameLower.includes('ceruledge')) imageUrl = 'https://images.pokemontcg.io/ssp-34.png';
-              else if (nameLower.includes('dragapult')) imageUrl = 'https://images.pokemontcg.io/twm-130.png';
-              else if (nameLower.includes('miraidon')) imageUrl = 'https://images.pokemontcg.io/sv1-81.png';
-              else if (nameLower.includes('lugia')) imageUrl = 'https://images.pokemontcg.io/sit-138.png';
-              else if (nameLower.includes('pidgeot')) imageUrl = 'https://images.pokemontcg.io/obf-225.png';
-              else if (nameLower.includes('ogerpon')) imageUrl = 'https://images.pokemontcg.io/twm-25.png';
-              else if (nameLower.includes('greninja')) imageUrl = 'https://images.pokemontcg.io/twm-106.png';
+              if (nameLower.includes('pikachu')) imageUrl = 'https://images.pokemontcg.io/sv8/54.png';
+              else if (nameLower.includes('charizard')) imageUrl = 'https://images.pokemontcg.io/sv3/125.png';
+              else if (nameLower.includes('gholdengo')) imageUrl = 'https://images.pokemontcg.io/sv4/139.png';
+              else if (nameLower.includes('moon')) imageUrl = 'https://images.pokemontcg.io/sv4/163.png';
+              else if (nameLower.includes('gardevoir')) imageUrl = 'https://images.pokemontcg.io/sv1/86.png';
+              else if (nameLower.includes('bolt')) imageUrl = 'https://images.pokemontcg.io/tef/123.png';
+              else if (nameLower.includes('drago')) imageUrl = 'https://images.pokemontcg.io/sit/136.png';
+              else if (nameLower.includes('terapagos')) imageUrl = 'https://images.pokemontcg.io/scr/128.png';
+              else if (nameLower.includes('ceruledge')) imageUrl = 'https://images.pokemontcg.io/ssp/34.png';
+              else if (nameLower.includes('dragapult')) imageUrl = 'https://images.pokemontcg.io/twm/130.png';
+              else if (nameLower.includes('miraidon')) imageUrl = 'https://images.pokemontcg.io/sv1/81.png';
+              else if (nameLower.includes('lugia')) imageUrl = 'https://images.pokemontcg.io/sit/138.png';
+              else if (nameLower.includes('pidgeot')) imageUrl = 'https://images.pokemontcg.io/obf/225.png';
+              else if (nameLower.includes('ogerpon')) imageUrl = 'https://images.pokemontcg.io/twm/25.png';
+              else if (nameLower.includes('greninja')) imageUrl = 'https://images.pokemontcg.io/twm/106.png';
               else if (firstPokemon.set && firstPokemon.number) {
                 const mappedSet = mapSetCodeToTcgIo(firstPokemon.set);
-                imageUrl = `https://images.pokemontcg.io/${mappedSet}-${firstPokemon.number}.png`;
+                imageUrl = `https://images.pokemontcg.io/${mappedSet}/${firstPokemon.number}.png`;
               }
             }
 
@@ -719,7 +719,7 @@ ${deckText}
       for (const card of parsedJson) {
         // Try looking up in fallback cards
         const localCard = fallbackCards.find(c => c.name.toLowerCase() === card.name.toLowerCase());
-        let imageUrl = localCard ? localCard.imageUrl : `https://images.pokemontcg.io/${card.set ? card.set.toLowerCase() : 'sv1'}-${card.number || '1'}.png`;
+        let imageUrl = localCard ? localCard.imageUrl : `https://images.pokemontcg.io/${card.set ? card.set.toLowerCase() : 'sv1'}/${card.number || '1'}.png`;
         
         // Let's do a quick lazy fetch from tcgio for Pokémons to get high-quality images
         if (card.type === 'Pokémon' && !localCard) {
@@ -780,7 +780,7 @@ ${deckText}
 
         // Try mapping to fallback
         const localCard = fallbackCards.find(c => c.name.toLowerCase().includes(cleanName.toLowerCase()));
-        const imageUrl = localCard ? localCard.imageUrl : `https://images.pokemontcg.io/${set ? set.toLowerCase() : 'sv1'}-${number || '1'}.png`;
+        const imageUrl = localCard ? localCard.imageUrl : `https://images.pokemontcg.io/${set ? set.toLowerCase() : 'sv1'}/${number || '1'}.png`;
 
         cards.push({
           name: cleanName,
@@ -800,7 +800,7 @@ ${deckText}
             name,
             count,
             type: currentCategory,
-            imageUrl: 'https://images.pokemontcg.io/sv1-166.png' // default fallback
+            imageUrl: 'https://images.pokemontcg.io/sv1/166.png' // default fallback
           });
         }
       }

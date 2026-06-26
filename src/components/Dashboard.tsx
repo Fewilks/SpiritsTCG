@@ -388,7 +388,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
 
             <div className="space-y-3">
               {metaDecks.map((deck, idx) => (
-                <div key={deck.name} className="flex gap-3 bg-slate-950/30 p-3 rounded-xl border border-slate-850 hover:border-purple-500/10 transition-all">
+                <div key={`${deck.name}-${idx}`} className="flex gap-3 bg-slate-950/30 p-3 rounded-xl border border-slate-850 hover:border-purple-500/10 transition-all">
                   <img src={deck.imageUrl} alt={deck.name} className="w-10 h-14 object-contain rounded shrink-0 drop-shadow-md" />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-1">
