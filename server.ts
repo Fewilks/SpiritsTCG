@@ -409,102 +409,174 @@ async function fetchMetaFromLimitless(): Promise<any[]> {
 }
 
 // REST APIs
+function mapSetCodeToTcgIo(set: string): string {
+  const s = (set || '').toLowerCase();
+  const maps: Record<string, string> = {
+    ssp: 'sv8',
+    scr: 'sv7',
+    sfa: 'sv6a',
+    twm: 'sv6',
+    tef: 'sv5',
+    saf: 'sv5a',
+    paf: 'sv4a',
+    par: 'sv4',
+    obf: 'sv3',
+    sv1: 'sv1',
+    sv2: 'sv2',
+    sv3: 'sv3',
+    sv4: 'sv4',
+    sv5: 'sv5',
+    sv6: 'sv6',
+    sv7: 'sv7',
+    sv8: 'sv8',
+    sit: 'sit',
+    lor: 'lor',
+    pgo: 'pgo',
+    asr: 'asr',
+    brs: 'brs',
+    fus: 'fus',
+    cel: 'cel',
+    cre: 'cre',
+    bst: 'bst',
+    shf: 'shf',
+    viv: 'viv',
+    daa: 'daa',
+    rca: 'rca',
+    ssh: 'ssh'
+  };
+  return maps[s] || s;
+}
+
+function formatLimitlessDecklist(decklist: any): string {
+  let listStr = '';
+  
+  if (decklist.pokemon && decklist.pokemon.length > 0) {
+    const total = decklist.pokemon.reduce((acc: number, p: any) => acc + (p.count || 0), 0);
+    listStr += `Pokémon: ${total}\n`;
+    decklist.pokemon.forEach((p: any) => {
+      listStr += `${p.count} ${p.name} ${p.set || ''} ${p.number || ''}\n`.trim() + '\n';
+    });
+    listStr += '\n';
+  }
+  
+  if (decklist.trainer && decklist.trainer.length > 0) {
+    const total = decklist.trainer.reduce((acc: number, p: any) => acc + (p.count || 0), 0);
+    listStr += `Trainer: ${total}\n`;
+    decklist.trainer.forEach((t: any) => {
+      listStr += `${t.count} ${t.name} ${t.set || ''} ${t.number || ''}\n`.trim() + '\n';
+    });
+    listStr += '\n';
+  }
+  
+  if (decklist.energy && decklist.energy.length > 0) {
+    const total = decklist.energy.reduce((acc: number, p: any) => acc + (p.count || 0), 0);
+    listStr += `Energy: ${total}\n`;
+    decklist.energy.forEach((e: any) => {
+      listStr += `${e.count} ${e.name} ${e.set || ''} ${e.number || ''}\n`.trim() + '\n';
+    });
+  }
+  
+  return listStr.trim();
+}
+
 app.get('/api/pokemon/meta', async (req, res) => {
   try {
-    const scraped = await fetchMetaFromLimitless();
-    
-    // Deep clone our high-quality pre-seeded decks
-    const richDecks = JSON.parse(JSON.stringify(metaDecks));
-    
-    if (scraped && scraped.length > 0) {
-      console.log(`Live Scraping: Successfully scraped ${scraped.length} decks from Limitless TCG.`);
-      
-      const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-      
-      // Merge live data into our rich pre-seeded decklists
-      scraped.forEach(sc => {
-        const matched = richDecks.find((rd: any) => 
-          normalize(rd.name).includes(normalize(sc.name)) || 
-          normalize(sc.name).includes(normalize(rd.name)) ||
-          normalize(rd.archetype).includes(normalize(sc.name))
+    // 1. Fetch tournaments list
+    const torResp = await fetch('https://play.limitlesstcg.com/api/tournaments?game=PTCG&format=STANDARD');
+    if (!torResp.ok) throw new Error('Limitless tournaments API failed');
+    const tournaments = await torResp.json();
+
+    if (tournaments && tournaments.length > 0) {
+      // 2. Filter & sort
+      const validTournaments = tournaments
+        .filter((t: any) => t.players >= 20)
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      // 3. Find first tournament with decklists in the top 3
+      for (const tournament of validTournaments.slice(0, 3)) {
+        const standingsResp = await fetch(`https://play.limitlesstcg.com/api/tournaments/${tournament.id}/standings`);
+        if (!standingsResp.ok) continue;
+        const standings = await standingsResp.json();
+
+        // 4. Filter with decklist
+        const withLists = standings.filter((s: any) =>
+          s.decklist && (s.decklist.pokemon || s.decklist.trainer || s.decklist.energy)
         );
-        
-        if (matched) {
-          matched.share = sc.share;
-          matched.winRate = sc.winRate;
-        } else {
-          // If a new competitive deck arises, add it dynamically with standard placeholders
-          const normalizedName = sc.name.toLowerCase();
-          let fallbackImage = 'https://images.pokemontcg.io/sv1-166.png';
-          
-          if (normalizedName.includes('pikachu')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv8-54.png';
-          } else if (normalizedName.includes('charizard')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv3-125.png';
-          } else if (normalizedName.includes('gholdengo')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv4-139.png';
-          } else if (normalizedName.includes('roaring moon')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv4-163.png';
-          } else if (normalizedName.includes('gardevoir')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv1-86.png';
-          } else if (normalizedName.includes('bolt')) {
-            fallbackImage = 'https://images.pokemontcg.io/tef-123.png';
-          } else if (normalizedName.includes('drago')) {
-            fallbackImage = 'https://images.pokemontcg.io/sit-136.png';
-          } else if (normalizedName.includes('terapagos')) {
-            fallbackImage = 'https://images.pokemontcg.io/scr-128.png';
-          } else if (normalizedName.includes('ceruledge')) {
-            fallbackImage = 'https://images.pokemontcg.io/ssp-34.png';
-          } else if (normalizedName.includes('dragapult')) {
-            fallbackImage = 'https://images.pokemontcg.io/twm-130.png';
-          } else if (normalizedName.includes('miraidon')) {
-            fallbackImage = 'https://images.pokemontcg.io/sv1-81.png';
-          }
-          
-          // New dynamic deck has current date as updatedAt so it ranks high
-          const todayStr = new Date().toISOString().split('T')[0];
-          
-          richDecks.push({
-            name: sc.name,
-            archetype: sc.name,
-            share: sc.share,
-            winRate: sc.winRate,
-            imageUrl: fallbackImage,
-            description: `Deck competitivo do formato Standard atual do Pokémon TCG. Metagame share de ${sc.share}% registrado pelo site Limitless TCG.`,
-            updatedAt: todayStr,
-            cards: [
-              { name: sc.name, count: 4 }
-            ],
-            rawList: `Pokémon: 4\n4 ${sc.name}\n\nTrainer: 44\n4 Arven SVI 166\n4 Iono PAF 80\n4 Boss's Orders PAL 172\n4 Professor's Research SVI 190\n4 Nest Ball SVI 181\n4 Ultra Ball SVI 196\n4 Buddy-Buddy Poffin TEF 144\n4 Super Rod PAL 188\n4 Earthen Vessel PAR 163\n4 Night Stretcher SFA 61\n4 Switch SVI 194\n\nEnergy: 12\n12 Basic Energy SVE 1`
+
+        if (withLists.length > 0) {
+          // Format 6 decks
+          const foundDecks = withLists.slice(0, 6).map((item: any) => {
+            const dateStr = tournament.date ? tournament.date.split('T')[0] : new Date().toISOString().split('T')[0];
+            
+            // Generate standard list
+            const rawList = formatLimitlessDecklist(item.decklist);
+            
+            // Build cards summary
+            const cards = (item.decklist.pokemon || []).slice(0, 3).map((p: any) => ({
+              name: `${p.name} (${p.set || ''} ${p.number || ''})`,
+              count: p.count || 4
+            }));
+
+            // Choose image
+            let imageUrl = 'https://images.pokemontcg.io/sv1-166.png';
+            if (item.decklist.pokemon && item.decklist.pokemon.length > 0) {
+              const firstPokemon = item.decklist.pokemon[0];
+              const nameLower = firstPokemon.name.toLowerCase();
+              if (nameLower.includes('pikachu')) imageUrl = 'https://images.pokemontcg.io/sv8-54.png';
+              else if (nameLower.includes('charizard')) imageUrl = 'https://images.pokemontcg.io/sv3-125.png';
+              else if (nameLower.includes('gholdengo')) imageUrl = 'https://images.pokemontcg.io/sv4-139.png';
+              else if (nameLower.includes('moon')) imageUrl = 'https://images.pokemontcg.io/sv4-163.png';
+              else if (nameLower.includes('gardevoir')) imageUrl = 'https://images.pokemontcg.io/sv1-86.png';
+              else if (nameLower.includes('bolt')) imageUrl = 'https://images.pokemontcg.io/tef-123.png';
+              else if (nameLower.includes('drago')) imageUrl = 'https://images.pokemontcg.io/sit-136.png';
+              else if (nameLower.includes('terapagos')) imageUrl = 'https://images.pokemontcg.io/scr-128.png';
+              else if (nameLower.includes('ceruledge')) imageUrl = 'https://images.pokemontcg.io/ssp-34.png';
+              else if (nameLower.includes('dragapult')) imageUrl = 'https://images.pokemontcg.io/twm-130.png';
+              else if (nameLower.includes('miraidon')) imageUrl = 'https://images.pokemontcg.io/sv1-81.png';
+              else if (nameLower.includes('lugia')) imageUrl = 'https://images.pokemontcg.io/sit-138.png';
+              else if (nameLower.includes('pidgeot')) imageUrl = 'https://images.pokemontcg.io/obf-225.png';
+              else if (nameLower.includes('ogerpon')) imageUrl = 'https://images.pokemontcg.io/twm-25.png';
+              else if (nameLower.includes('greninja')) imageUrl = 'https://images.pokemontcg.io/twm-106.png';
+              else if (firstPokemon.set && firstPokemon.number) {
+                const mappedSet = mapSetCodeToTcgIo(firstPokemon.set);
+                imageUrl = `https://images.pokemontcg.io/${mappedSet}-${firstPokemon.number}.png`;
+              }
+            }
+
+            // Description
+            const description = `Deck utilizado por ${item.name || item.player} conquistando o ${item.placing ? item.placing + 'º' : 'Top'} lugar no torneio '${tournament.name}' (${tournament.players} jogadores).`;
+
+            return {
+              name: item.deck?.name || 'Deck Oficial',
+              archetype: `Jogador: ${item.name || item.player} (${item.placing ? item.placing + 'º Lugar' : 'Top'})`,
+              share: item.placing || 1, // Placing is stored in share
+              imageUrl,
+              description,
+              updatedAt: dateStr,
+              cards,
+              rawList
+            };
+          });
+
+          return res.json({
+            decks: foundDecks,
+            tournamentName: tournament.name
           });
         }
-      });
-      
-      // Sort combined results by updatedAt descending, then by metagame share descending
-      richDecks.sort((a: any, b: any) => {
-        const dateA = a.updatedAt || '2023-01-01';
-        const dateB = b.updatedAt || '2023-01-01';
-        if (dateB !== dateA) {
-          return dateB.localeCompare(dateA);
-        }
-        return b.share - a.share;
-      });
-      return res.json(richDecks);
-    }
-    
-    // Sort our high quality pre-seeded list by updatedAt descending
-    richDecks.sort((a: any, b: any) => {
-      const dateA = a.updatedAt || '2023-01-01';
-      const dateB = b.updatedAt || '2023-01-01';
-      if (dateB !== dateA) {
-        return dateB.localeCompare(dateA);
       }
-      return b.share - a.share;
+    }
+
+    // Default Fallback
+    return res.json({
+      decks: metaDecks,
+      tournamentName: 'Standard format meta (Local Database / Fallback)'
     });
-    return res.json(richDecks);
   } catch (err) {
-    console.error('Error serving Pokemon meta decks API:', err);
-    res.json(metaDecks);
+    console.warn('Erro ao sincronizar com Limitless TCG:', err);
+    return res.json({
+      decks: metaDecks,
+      tournamentName: 'Standard format meta (Local Database / Fallback)'
+    });
   }
 });
 

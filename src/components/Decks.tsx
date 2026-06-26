@@ -33,6 +33,7 @@ export default function Decks({ currentMember }: DecksProps) {
   const [metaDecks, setMetaDecks] = useState<any[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
   const [copiedDeckId, setCopiedDeckId] = useState<string | null>(null);
+  const [tournamentName, setTournamentName] = useState('Carregando...');
 
   // Import Deck State
   const [showImportModal, setShowImportModal] = useState(false);
@@ -86,14 +87,18 @@ export default function Decks({ currentMember }: DecksProps) {
         const res = await fetch('/api/pokemon/meta');
         if (res.ok) {
           const data = await res.json();
+          const decksList = data.decks || (Array.isArray(data) ? data : []);
+          const tName = data.tournamentName || 'Standard format meta';
+          
           // Sort by date descending
-          const sorted = data.sort((a: any, b: any) => {
+          const sorted = decksList.sort((a: any, b: any) => {
             const dateA = a.updatedAt || '2023-01-01';
             const dateB = b.updatedAt || '2023-01-01';
             if (dateB !== dateA) return dateB.localeCompare(dateA);
             return b.share - a.share;
           });
           setMetaDecks(sorted);
+          setTournamentName(tName);
         } else {
           throw new Error('Retornou status ' + res.status);
         }
@@ -107,6 +112,7 @@ export default function Decks({ currentMember }: DecksProps) {
           return b.share - a.share;
         });
         setMetaDecks(sortedFallback);
+        setTournamentName('Standard format meta (Local Database / Fallback)');
       } finally {
         setLoadingMeta(false);
       }
@@ -545,75 +551,90 @@ export default function Decks({ currentMember }: DecksProps) {
             <p className="mt-4 text-purple-300 font-mono text-xs animate-pulse">Sincronizando meta global com o Limitless TCG...</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="limitless-meta-grid">
-            {metaDecks.map((deck) => (
-              <div 
-                key={deck.name} 
-                className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-500/40 transition-all duration-300 shadow-xl relative overflow-hidden group"
-              >
-                {/* Background decorative gradient */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-600/10 transition-all"></div>
-                
-                <div className="space-y-4">
-                  {/* Top Header Card */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={deck.imageUrl} 
-                        alt={deck.name} 
-                        className="w-12 h-16 object-contain drop-shadow-md rounded group-hover:scale-105 transition-transform" 
-                        referrerPolicy="no-referrer"
-                      />
+          <div className="space-y-6">
+            <div className="bg-slate-900/40 border border-slate-850 p-4 rounded-xl flex items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block font-mono">Torneio Ativo Limitless</span>
+                <h2 className="text-white text-base font-extrabold">{tournamentName}</h2>
+              </div>
+              <span className="px-3 py-1 bg-purple-950/40 border border-purple-900/40 text-[10px] font-bold text-purple-300 rounded-full font-mono flex items-center gap-1">
+                🏆 Sincronizado
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="limitless-meta-grid">
+              {metaDecks.map((deck) => (
+                <div 
+                  key={deck.name} 
+                  className="bg-slate-900/50 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-purple-500/40 transition-all duration-300 shadow-xl relative overflow-hidden group"
+                >
+                  {/* Background decorative gradient */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple-600/10 transition-all"></div>
+                  
+                  <div className="space-y-4">
+                    {/* Top Header Card */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={deck.imageUrl} 
+                          alt={deck.name} 
+                          className="w-12 h-16 object-contain drop-shadow-md rounded group-hover:scale-105 transition-transform" 
+                          referrerPolicy="no-referrer"
+                        />
+                        <div>
+                          <h3 className="text-white font-extrabold text-base leading-snug">{deck.name}</h3>
+                          <p className="text-xs text-purple-400 font-semibold mt-0.5">{deck.archetype}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Share percent Badge */}
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">
+                          {typeof deck.share === 'number' && deck.share <= 8 ? 'Colocação' : 'Uso no Meta'}
+                        </span>
+                        <span className="text-sm font-black text-white font-mono">
+                          {typeof deck.share === 'number' && deck.share <= 8 ? `${deck.share}º` : `${deck.share}%`}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Strategy Description */}
+                    <p className="text-xs text-slate-300 leading-relaxed font-sans">{deck.description}</p>
+
+                    {/* Stats section */}
+                    <div className="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
                       <div>
-                        <h3 className="text-white font-extrabold text-base leading-snug">{deck.name}</h3>
-                        <p className="text-xs text-purple-400 font-semibold mt-0.5">{deck.archetype}</p>
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Atualizado</span>
+                        <span className="text-sm font-bold text-indigo-400 font-mono">
+                          {deck.updatedAt ? new Date(deck.updatedAt + 'T00:00:00').toLocaleDateString('pt-BR') : '08/11/2024'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-500 uppercase font-bold block">Principais Cartas</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {deck.cards.slice(0, 3).map((c: any, i: number) => (
+                            <span key={i} className="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800 font-mono" title={c.name}>
+                              {c.name.split(' (')[0]}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                    
-                    {/* Share percent Badge */}
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Uso no Meta</span>
-                      <span className="text-sm font-black text-white font-mono">{deck.share}%</span>
-                    </div>
-                  </div>
 
-                  {/* Strategy Description */}
-                  <p className="text-xs text-slate-300 leading-relaxed font-sans">{deck.description}</p>
-
-                  {/* Stats section */}
-                  <div className="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-xl border border-slate-850">
-                    <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Atualizado</span>
-                      <span className="text-sm font-bold text-indigo-400 font-mono">
-                        {deck.updatedAt ? new Date(deck.updatedAt + 'T00:00:00').toLocaleDateString('pt-BR') : '08/11/2024'}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold block">Principais Cartas</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {deck.cards.slice(0, 3).map((c: any, i: number) => (
-                          <span key={i} className="text-[9px] bg-slate-900 text-slate-400 px-1.5 py-0.5 rounded border border-slate-800 font-mono" title={c.name}>
-                            {c.name.split(' (')[0]}
-                          </span>
-                        ))}
+                    {/* Usage Progress bar */}
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                        <span>{typeof deck.share === 'number' && deck.share <= 8 ? 'Rank no Torneio' : 'Presença nos campeonatos'}</span>
+                        <span>{typeof deck.share === 'number' && deck.share <= 8 ? `${deck.share}º Lugar` : `${deck.share}%`}</span>
+                      </div>
+                      <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-850">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full" 
+                          style={{ width: `${typeof deck.share === 'number' && deck.share <= 8 ? (9 - deck.share) * 12.5 : deck.share * 4}%` }} 
+                        ></div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Usage Progress bar */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                      <span>Presença nos campeonatos</span>
-                      <span>{deck.share}%</span>
-                    </div>
-                    <div className="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-850">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-indigo-500 h-full rounded-full" 
-                        style={{ width: `${deck.share * 4}%` }} 
-                      ></div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Actions bottom */}
                 <div className="flex gap-2.5 mt-5 pt-4 border-t border-slate-850">
@@ -645,6 +666,7 @@ export default function Decks({ currentMember }: DecksProps) {
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )
       )}

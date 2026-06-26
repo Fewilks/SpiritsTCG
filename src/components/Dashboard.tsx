@@ -29,6 +29,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
   const [recentMatches, setRecentMatches] = useState<MatchRecord[]>([]);
   const [pendingLoans, setPendingLoans] = useState<LoanRecord[]>([]);
   const [metaDecks, setMetaDecks] = useState<MetaDeck[]>([]);
+  const [tournamentName, setTournamentName] = useState<string>('Carregando...');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -62,14 +63,18 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
           const res = await fetch('/api/pokemon/meta');
           if (res.ok) {
             const metaData = await res.json();
+            const decksList = metaData.decks || (Array.isArray(metaData) ? metaData : []);
+            const tName = metaData.tournamentName || 'Standard format meta';
+            
             // Sort by date descending
-            const sorted = metaData.sort((a: any, b: any) => {
+            const sorted = decksList.sort((a: any, b: any) => {
               const dateA = a.updatedAt || '2023-01-01';
               const dateB = b.updatedAt || '2023-01-01';
               if (dateB !== dateA) return dateB.localeCompare(dateA);
               return b.share - a.share;
             });
             setMetaDecks(sorted);
+            setTournamentName(tName);
           } else {
             throw new Error('Retornou status ' + res.status);
           }
@@ -82,6 +87,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
             return b.share - a.share;
           });
           setMetaDecks(sortedFallback);
+          setTournamentName('Standard format meta (Local Database / Fallback)');
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
@@ -143,7 +149,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-purple-400 font-bold tracking-wider text-xs uppercase font-mono">
               <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-              Arena Spirits de Elite
+              Arena Espírita de Elite
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
               Olá, <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-300">{currentMember.nickname || currentMember.name}</span>!
@@ -373,7 +379,10 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
               <TrendingUp className="w-5 h-5 text-purple-400" />
               <h2 className="text-base font-extrabold text-white">Metagame (Limitless)</h2>
             </div>
-            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+            <p className="text-xs text-purple-400 font-bold mb-1 truncate" title={tournamentName}>
+              🏆 {tournamentName}
+            </p>
+            <p className="text-[10px] text-slate-500 mb-4 leading-relaxed">
               Baseado nos dados competitivos mais recentes do Limitless TCG.
             </p>
 
@@ -390,8 +399,12 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
                     
                     <div className="flex items-center gap-4 mt-2 border-t border-slate-950 pt-1.5">
                       <div>
-                        <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">Share</div>
-                        <div className="text-[10px] font-extrabold text-slate-200 font-mono">{deck.share}%</div>
+                        <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">
+                          {typeof deck.share === 'number' && deck.share <= 8 ? 'Colocação' : 'Share'}
+                        </div>
+                        <div className="text-[10px] font-extrabold text-slate-200 font-mono">
+                          {typeof deck.share === 'number' && deck.share <= 8 ? `${deck.share}º` : `${deck.share}%`}
+                        </div>
                       </div>
                       <div>
                         <div className="text-[9px] text-slate-500 uppercase font-mono font-bold">Atualizado</div>
