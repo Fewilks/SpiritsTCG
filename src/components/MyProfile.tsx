@@ -27,13 +27,21 @@ interface MyProfileProps {
   currentMember: Member;
   setCurrentMember: (member: Member) => void;
   onMemberUpdated: () => void;
+  currentUserEmail?: string;
 }
 
-export default function MyProfile({ currentMember, setCurrentMember, onMemberUpdated }: MyProfileProps) {
+export default function MyProfile({ currentMember, setCurrentMember, onMemberUpdated, currentUserEmail = '' }: MyProfileProps) {
   const [name, setName] = useState(currentMember.name || '');
   const [nickname, setNickname] = useState(currentMember.nickname || '');
   const [avatarSprite, setAvatarSprite] = useState(currentMember.avatarSprite || 'pikachu');
   const [role, setRole] = useState<'pokeball' | 'greatball' | 'ultraball' | 'masterball' | 'Premium ball'>(currentMember.role as any || 'pokeball');
+  
+  const adminEmails = [
+    'felipewilks@gmail.com',
+    'abner.catarino09@gmail.com',
+    'matheustadiottoa@gmail.com'
+  ];
+  const canEditRole = adminEmails.includes((currentUserEmail || '').toLowerCase().trim());
   
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -84,7 +92,7 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
 
   // Access control mapping for presentation
   const getRoleRankValue = (r: string): number => {
-    const norm = r.toLowerCase().replace(/\s+/g, '');
+    const norm = (r || '').toLowerCase().replace(/\s+/g, '');
     if (norm === 'pokeball') return 1;
     if (norm === 'greatball') return 2;
     if (norm === 'ultraball') return 3;
@@ -193,12 +201,16 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
 
               {/* Simulation Rank Selector */}
               <div className="space-y-1.5">
-                <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">Meu Level / Evolução Competitiva</label>
+                <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                  <span>Meu Level / Evolução Competitiva</span>
+                  {!canEditRole && <span className="text-red-400 font-bold text-[9px] uppercase tracking-normal">Apenas Staff Autorizada</span>}
+                </label>
                 <select 
                   id="profile-edit-role"
                   value={role}
+                  disabled={!canEditRole}
                   onChange={(e: any) => setRole(e.target.value)}
-                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-purple-500/50 rounded-xl py-2.5 px-3 text-xs font-medium text-white focus:outline-none transition-colors cursor-pointer"
+                  className="w-full bg-slate-950/60 border border-slate-850 focus:border-purple-500/50 rounded-xl py-2.5 px-3 text-xs font-medium text-white focus:outline-none transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <option value="pokeball">🔴 Level Pokéball (0 - 29 pts)</option>
                   <option value="greatball">🔵 Level Greatball (30 - 59 pts)</option>
@@ -206,7 +218,11 @@ export default function MyProfile({ currentMember, setCurrentMember, onMemberUpd
                   <option value="masterball">🟣 Level Masterball (100 - 149 pts)</option>
                   <option value="Premium ball">✨ Level Premium (150+ pts ou Staff)</option>
                 </select>
-                <p className="text-[10px] text-slate-550 font-mono mt-1">Sinaliza seu progresso acumulado em partidas oficiais e eventos internos do time.</p>
+                <p className="text-[10px] text-slate-550 font-mono mt-1">
+                  {canEditRole 
+                    ? "Sinaliza seu progresso acumulado em partidas oficiais e eventos internos do time." 
+                    : "Alteração restrita aos administradores (Felipe, Abner e Matheus)."}
+                </p>
               </div>
             </div>
 
