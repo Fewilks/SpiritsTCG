@@ -32,16 +32,15 @@ const metaDecks = [
   {
     name: 'Pikachu ex',
     archetype: 'Pikachu ex / Latias ex / Magneton',
-    share: 18.2,
-    winRate: 55.4,
+    share: 14.8,
+    winRate: 53.1,
     imageUrl: 'https://images.pokemontcg.io/sv8/54.png',
-    updatedAt: '2024-11-08',
-    description: 'O deck do momento após Surging Sparks. Pikachu ex bate 300 de dano e previne nocaute com vida cheia (habilidade Resolute Heart), energizado instantaneamente pela habilidade Overcharge do Magneton.',
+    updatedAt: '2026-06-10',
+    description: 'Inovador e incrivelmente forte. Pikachu ex desfere 300 de dano massivo de uma vez e previne o próprio nocaute quando com HP cheio através da habilidade Resolute Heart. Ele é energizado instantaneamente pela habilidade Overcharge do Magneton.',
     cards: [
       { name: 'Pikachu ex (SSP 054)', count: 3 },
       { name: 'Latias ex (SSP 076)', count: 1 },
-      { name: 'Magneton (SSP 052)', count: 3 },
-      { name: 'Briar (SCR 132)', count: 1 }
+      { name: 'Magneton (SSP 052)', count: 3 }
     ],
     rawList: `Pokémon: 16
 4 Magnemite SSP 51
@@ -72,64 +71,17 @@ Energy: 12
 12 Basic Lightning Energy SVE 4`
   },
   {
-    name: 'Regidrago VSTAR',
-    archetype: 'Regidrago VSTAR / Teal Mask Ogerpon',
-    share: 14.5,
-    winRate: 53.8,
-    imageUrl: 'https://images.pokemontcg.io/sit/136.png',
-    updatedAt: '2023-06-09',
-    description: 'Extremamente versátil. Usa o ataque Apex Dragon para copiar ataques de qualquer dragão no descarte (como Giratina VSTAR ou Noivern ex), energizado rapidamente por Teal Mask Ogerpon ex.',
-    cards: [
-      { name: 'Regidrago VSTAR (SIT 136)', count: 3 },
-      { name: 'Teal Mask Ogerpon ex (TWM 25)', count: 4 },
-      { name: 'Energy Switch (SVI 173)', count: 4 },
-      { name: 'Professor Sada\'s Vitality', count: 4 }
-    ],
-    rawList: `Pokémon: 17
-3 Regidrago V SIT 135
-3 Regidrago VSTAR SIT 136
-3 Teal Mask Ogerpon ex TWM 25
-1 Giratina VSTAR LOR 131
-1 Noivern ex PAF 69
-1 Haxorus TWM 156
-1 Dragapult ex TWM 130
-1 Kyurem SFA 47
-1 Mew ex MEW 151
-1 Radiant Charizard PGO 11
-1 Fezandipiti ex TWM 96
-
-Trainer: 31
-4 Professor Sada's Vitality PAR 170
-3 Iono PAF 80
-2 Boss's Orders PAL 172
-4 Ultra Ball SVI 196
-4 Nest Ball SVI 181
-4 Energy Switch SVI 173
-4 Earthen Vessel PAR 163
-2 Super Rod PAL 188
-1 Superior Energy Retrieval PAL 189
-1 Prime Catcher TEF 157
-1 Pokégear 3.0 SVI 186
-1 Lost Vacuum LOR 162
-
-Energy: 12
-6 Basic Grass Energy SVE 1
-3 Basic Fire Energy SVE 2
-3 Basic Psychic Energy SVE 13`
-  },
-  {
     name: 'Raging Bolt ex',
-    archetype: 'Raging Bolt ex / Teal Mask Ogerpon',
-    share: 13.2,
-    winRate: 52.9,
-    imageUrl: 'https://images.pokemontcg.io/tef/123.png',
-    updatedAt: '2024-03-22',
-    description: 'Dano explosivo ilimitado. Descarta energias em jogo para causar 70 de dano por energia, utilizando Ogerpon para acelerar energias de Grama e puxar cartas adicionais.',
+    archetype: 'Raging Bolt ex / Teal Mask Ogerpon ex',
+    share: 15.2,
+    winRate: 53.6,
+    imageUrl: 'https://images.pokemontcg.io/sv5/123.png',
+    updatedAt: '2026-06-02',
+    description: 'Um dos decks mais rápidos e explosivos do formato Standard. Bate dano infinito descartando energias ligadas aos seus Pokémons com o ataque Bellowing Thunder, suportado pela aceleração de energia e compra do Teal Mask Ogerpon ex.',
     cards: [
       { name: 'Raging Bolt ex (TEF 123)', count: 4 },
       { name: 'Teal Mask Ogerpon ex (TWM 25)', count: 4 },
-      { name: 'Professor Sada\'s Vitality (PAR 170)', count: 4 },
-      { name: 'Earthen Vessel (PAR 163)', count: 4 }
+      { name: "Professor Sada's Vitality (PAR 170)", count: 4 }
     ],
     rawList: `Pokémon: 12
 4 Raging Bolt ex TEF 123
@@ -164,21 +116,65 @@ Energy: 13
 3 Basic Fighting Energy SVE 6`
   },
   {
-    name: 'Terapagos ex',
-    archetype: 'Terapagos ex / Pidgeot ex / Dusknoir',
-    share: 15.1,
-    winRate: 53.6,
-    imageUrl: 'https://images.pokemontcg.io/scr/128.png',
-    updatedAt: '2024-09-13',
-    description: 'Utiliza Area Zero Underdepths para expandir o banco para 8 Pokémons, aumentando o dano do Unified Beatdown de Terapagos ex para 240. Dusknoir oferece nocautes surpresa com Cursed Blast.',
+    name: 'Regidrago VSTAR',
+    archetype: 'Regidrago VSTAR / Teal Mask Ogerpon ex',
+    share: 16.5,
+    winRate: 54.2,
+    imageUrl: 'https://images.pokemontcg.io/swsh12/136.png',
+    updatedAt: '2026-05-18',
+    description: 'O deck de Dragão supremo no Standard format. Usa o ataque Apex Dragon do Regidrago VSTAR para copiar habilidades de outros Pokémon dragão da pilha de descarte (como Giratina VSTAR ou Noivern ex), energizado de forma ultrarrápida com Teal Mask Ogerpon ex.',
     cards: [
-      { name: 'Terapagos ex (SCR 128)', count: 3 },
+      { name: 'Regidrago VSTAR (SIT 136)', count: 3 },
+      { name: 'Teal Mask Ogerpon ex (TWM 25)', count: 4 },
+      { name: 'Energy Switch (SVI 173)', count: 4 }
+    ],
+    rawList: `Pokémon: 17
+3 Regidrago V SIT 135
+3 Regidrago VSTAR SIT 136
+3 Teal Mask Ogerpon ex TWM 25
+1 Giratina VSTAR LOR 131
+1 Noivern ex PAF 69
+1 Haxorus TWM 156
+1 Dragapult ex TWM 130
+1 Kyurem SFA 47
+1 Mew ex MEW 151
+1 Radiant Charizard PGO 11
+1 Fezandipiti ex TWM 96
+
+Trainer: 31
+4 Professor Sada's Vitality PAR 170
+3 Iono PAF 80
+2 Boss's Orders PAL 172
+4 Ultra Ball SVI 196
+4 Nest Ball SVI 181
+4 Energy Switch SVI 173
+4 Earthen Vessel PAR 163
+2 Super Rod PAL 188
+1 Superior Energy Retrieval PAL 189
+1 Prime Catcher TEF 157
+1 Pokégear 3.0 SVI 186
+1 Lost Vacuum LOR 162
+
+Energy: 12
+6 Basic Grass Energy SVE 1
+3 Basic Fire Energy SVE 2
+3 Basic Psychic Energy SVE 13`
+  },
+  {
+    name: 'Charizard ex',
+    archetype: 'Charizard ex / Pidgeot ex / Dusknoir',
+    share: 13.9,
+    winRate: 52.8,
+    imageUrl: 'https://images.pokemontcg.io/sv3/125.png',
+    updatedAt: '2026-06-15',
+    description: 'O soberano resiliente do TCG. Charizard ex aumenta seu poder destrutivo conforme o oponente ganha cartas de prêmio. Utiliza a habilidade Cursed Blast do Dusknoir para forçar nocautes inesperados e Pidgeot ex para buscas irrestritas.',
+    cards: [
+      { name: 'Charizard ex (OBF 125)', count: 3 },
       { name: 'Pidgeot ex (OBF 225)', count: 2 },
-      { name: 'Dusknoir (SFA 20)', count: 2 },
-      { name: 'Area Zero Underdepths (SCR 131)', count: 3 }
+      { name: 'Dusknoir (SFA 20)', count: 2 }
     ],
     rawList: `Pokémon: 18
-3 Terapagos ex SCR 128
+3 Charizard ex OBF 125
 2 Pidgey MEW 16
 2 Pidgeot ex OBF 225
 3 Duskull SFA 18
@@ -207,89 +203,83 @@ Energy: 12
 8 Basic Water Energy SVE 3`
   },
   {
-    name: 'Ceruledge ex',
-    archetype: 'Ceruledge ex / Dusknoir / Pecharunt',
-    share: 12.8,
-    winRate: 52.8,
-    imageUrl: 'https://images.pokemontcg.io/ssp/34.png',
-    updatedAt: '2024-11-08',
-    description: 'Descarte em massa de energias usando Earthen Vessel e Professor Sada. O ataque de Ceruledge ex causa 30 de dano para cada energia na pilha de descarte, atingindo números avassaladores rapidamente.',
+    name: 'Lugia VSTAR',
+    archetype: 'Lugia VSTAR / Archeops / Cinccino',
+    share: 11.5,
+    winRate: 51.9,
+    imageUrl: 'https://images.pokemontcg.io/swsh12/139.png',
+    updatedAt: '2026-06-20',
+    description: 'Um monstro clássico que continua no topo. Invoca instantaneamente dois Archeops do descarte para o banco usando a habilidade Summoning Star do Lugia VSTAR, acelerando energias especiais massivamente para Cinccino bater forte.',
     cards: [
-      { name: 'Ceruledge ex (SSP 034)', count: 4 },
-      { name: 'Dusknoir (SFA 20)', count: 2 },
-      { name: 'Earthen Vessel (PAR 163)', count: 4 },
-      { name: 'Professor Sada\'s Vitality', count: 4 }
+      { name: 'Lugia VSTAR (SIT 139)', count: 3 },
+      { name: 'Archeops (SIT 147)', count: 4 },
+      { name: 'Cinccino (TEF 137)', count: 3 }
     ],
-    rawList: `Pokémon: 15
-4 Charcadet SSP 33
-4 Ceruledge ex SSP 34
-2 Duskull SFA 18
-2 Dusknoir SFA 20
-1 Radiant Greninja ASR 46
-1 Fezandipiti ex TWM 96
-1 Pecharunt ex SFA 39
+    rawList: `Pokémon: 16
+3 Lugia V SIT 138
+3 Lugia VSTAR SIT 139
+4 Archeops SIT 147
+3 Minccino TEF 136
+3 Cinccino TEF 137
 
-Trainer: 33
-4 Professor Sada's Vitality PAR 170
+Trainer: 28
+4 Professor's Research SVI 189
 3 Iono PAF 80
 2 Boss's Orders PAL 172
-4 Earthen Vessel PAR 163
+4 Great Ball SVI 183
 4 Ultra Ball SVI 196
-4 Nest Ball SVI 181
-4 Trekking Shoes ASR 156
-3 Pokégear 3.0 SVI 186
-1 Prime Catcher TEF 157
-1 Super Rod PAL 188
-1 Night Stretcher SFA 61
-2 PokéStop OBF 193
+4 Capturing Aroma SIT 153
+2 Super Rod PAL 188
+3 Collapsed Stadium BRS 137
+2 Jac SVI 175
 
-Energy: 12
-12 Basic Fire Energy SVE 2`
+Energy: 16
+4 Jet Energy PAL 190
+4 Double Turbo Energy BRS 151
+4 Gift Energy LOR 171
+4 Mist Energy TEF 161`
   },
   {
-    name: 'Dragapult ex',
-    archetype: 'Dragapult ex / Pidgeot ex',
-    share: 10.4,
-    winRate: 51.9,
-    imageUrl: 'https://images.pokemontcg.io/twm/130.png',
-    updatedAt: '2024-05-24',
-    description: 'Dano cirúrgico. Com o ataque Phantom Dive, causa 200 de dano no ativo e distribui 6 contadores de dano no banco adversário. Pidgeot ex oferece busca irrestrita.',
+    name: 'Gardevoir ex',
+    archetype: 'Gardevoir ex / Drifloon / Scream Tail',
+    share: 10.2,
+    winRate: 52.4,
+    imageUrl: 'https://images.pokemontcg.io/sv1/86.png',
+    updatedAt: '2026-06-25',
+    description: 'Altamente técnico e estratégico. Gardevoir ex recicla energias psíquicas da pilha de descarte direto para seus Pokémons usando Psychic Embrace, permitindo que atacantes como Drifloon e Scream Tail batam números absurdos com base nos contadores de dano.',
     cards: [
-      { name: 'Dragapult ex (TWM 130)', count: 3 },
-      { name: 'Pidgeot ex (OBF 225)', count: 2 },
-      { name: 'Arven (SVI 166)', count: 4 },
-      { name: 'Rare Candy (SVI 191)', count: 4 }
+      { name: 'Gardevoir ex (SVI 086)', count: 2 },
+      { name: 'Drifloon (SVI 089)', count: 2 },
+      { name: 'Scream Tail (PAR 086)', count: 1 }
     ],
-    rawList: `Pokémon: 19
-3 Dreepy TWM 128
-1 Drakloak TWM 129
-3 Dragapult ex TWM 130
-2 Pidgey MEW 16
-2 Pidgeot ex OBF 225
-2 Rotom V LOR 58
+    rawList: `Pokémon: 18
+3 Ralts SVI 84
+1 Ralts ASR 60
+3 Kirlia SIT 68
+2 Gardevoir ex SVI 86
+2 Drifloon SVI 89
+1 Scream Tail PAR 86
+1 Munkidori TWM 95
 1 Fezandipiti ex TWM 96
-1 Manaphy BRS 41
-1 Radiant Alakazam SIT 59
-2 Duskull SFA 18
-1 Dusknoir SFA 20
+2 Flutter Mane TEF 78
+2 Klefki SVI 96
 
-Trainer: 31
+Trainer: 32
 4 Arven SVI 166
 3 Iono PAF 80
 2 Boss's Orders PAL 172
-4 Rare Candy SVI 191
+1 Professor's Research SVI 189
 4 Buddy-Buddy Poffin TEF 144
+4 Nest Ball SVI 181
 4 Ultra Ball SVI 196
-3 Nest Ball SVI 181
-2 Super Rod PAL 188
-1 Prime Catcher TEF 157
+3 Super Rod PAL 188
+2 Earthen Vessel PAR 163
+2 Bravery Charm PAL 173
 1 Counter Catcher PAR 160
-1 Technical Machine: Devolution PAR 177
-2 Area Zero Underdepths SCR 131
+2 Technical Machine: Evolution PAR 178
 
 Energy: 10
-4 Basic Fire Energy SVE 2
-6 Basic Psychic Energy SVE 13`
+10 Basic Psychic Energy SVE 13`
   }
 ];
 
@@ -504,8 +494,8 @@ app.get('/api/pokemon/meta', async (req, res) => {
         );
 
         if (withLists.length > 0) {
-          // Format 6 decks
-          const foundDecks = withLists.slice(0, 6).map((item: any) => {
+          // Format 6 decks with sequential placing to avoid all defaulting to 1st place
+          const foundDecks = withLists.slice(0, 6).map((item: any, idx: number) => {
             const dateStr = tournament.date ? tournament.date.split('T')[0] : new Date().toISOString().split('T')[0];
             
             // Generate standard list
@@ -544,7 +534,7 @@ app.get('/api/pokemon/meta', async (req, res) => {
             }
 
             // Description
-            const placing = item.place || item.placing || 1;
+            const placing = item.place || item.placing || item.standing || (idx + 1);
             const description = `Deck utilizado por ${item.name || item.player} conquistando o ${placing ? placing + 'º' : 'Top'} lugar no torneio '${tournament.name}' (${tournament.players} jogadores).`;
 
             let winRate = 58.5;
@@ -593,14 +583,12 @@ app.get('/api/pokemon/meta', async (req, res) => {
   }
 });
 
-// Search Pokémon cards via pokemontcg.io with local fallbacks
+// Search Pokémon cards via pokemontcg.io with local fallbacks and pagination support
 app.get('/api/pokemon/search', async (req, res) => {
   const queryParam = (req.query.q as string) || '';
   const setParam = (req.query.set as string) || '';
-
-  if (!queryParam && !setParam) {
-    return res.json([]);
-  }
+  const pageParam = parseInt(req.query.page as string || '1', 10);
+  const pageSizeParam = parseInt(req.query.pageSize as string || '60', 10);
 
   try {
     let qString = '';
@@ -612,35 +600,52 @@ app.get('/api/pokemon/search', async (req, res) => {
       qString += `set.id:${setParam}`;
     }
 
-    console.log(`Searching cards for: q="${queryParam}" set="${setParam}" -> query="${qString}"`);
+    console.log(`Searching cards for: q="${queryParam}" set="${setParam}" page=${pageParam} pageSize=${pageSizeParam}`);
     const encodedQuery = encodeURIComponent(qString);
-    const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=${encodedQuery}&pageSize=36`);
+    const url = qString 
+      ? `https://api.pokemontcg.io/v2/cards?q=${encodedQuery}&page=${pageParam}&pageSize=${pageSizeParam}&orderBy=name`
+      : `https://api.pokemontcg.io/v2/cards?page=${pageParam}&pageSize=${pageSizeParam}&orderBy=name`;
+
+    const response = await fetch(url);
     
     if (response.ok) {
       const data = await response.json();
-      if (data.data && data.data.length > 0) {
-        const formatted = data.data.map((card: any) => ({
-          id: card.id,
-          name: card.name,
-          imageUrl: card.images.small || card.images.large,
-          setCode: card.set.id,
-          setName: card.set.name,
-          setNumber: card.number
-        }));
-        return res.json(formatted);
-      }
+      return res.json({
+        data: data.data || [],
+        totalCount: data.totalCount || 0
+      });
     }
   } catch (error) {
     console.error('External API failed, falling back to local list:', error);
   }
 
   // Local fallback search (matches only on name if q is specified)
+  let matched = fallbackCards;
   if (queryParam) {
     const lowerQuery = queryParam.toLowerCase();
-    const matched = fallbackCards.filter(c => c.name.toLowerCase().includes(lowerQuery));
-    return res.json(matched);
+    matched = fallbackCards.filter(c => c.name.toLowerCase().includes(lowerQuery));
   }
-  res.json([]);
+  if (setParam) {
+    matched = matched.filter(c => c.setCode === setParam);
+  }
+
+  const start = (pageParam - 1) * pageSizeParam;
+  const end = start + pageSizeParam;
+  const paginated = matched.slice(start, end);
+
+  // Format fallbacks to look like pokemontcg.io response format
+  const formatted = paginated.map(card => ({
+    id: card.id,
+    name: card.name,
+    images: { small: card.imageUrl, large: card.imageUrl },
+    set: { id: card.setCode, name: card.setName },
+    number: card.setNumber
+  }));
+
+  res.json({
+    data: formatted,
+    totalCount: matched.length
+  });
 });
 
 // Fetch all available Pokémon TCG sets
