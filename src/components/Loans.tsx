@@ -188,6 +188,7 @@ export default function Loans({ currentMember }: LoansProps) {
                           alt={card.name} 
                           className="w-20 h-28 object-contain rounded border border-slate-800" 
                           referrerPolicy="no-referrer"
+                          onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
                         />
                         
                         <div className="flex-1 flex flex-col justify-between">
@@ -279,7 +280,7 @@ export default function Loans({ currentMember }: LoansProps) {
                   {myBorrowedCards.map(loan => (
                     <div key={loan.id} className="bg-slate-950/40 p-3 rounded-lg border border-slate-850 flex gap-2.5 items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <img src={loan.cardImageUrl} alt={loan.cardName} className="w-8 h-11 object-contain rounded" />
+                        <img src={loan.cardImageUrl} alt={loan.cardName} className="w-8 h-11 object-contain rounded" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                         <div className="min-w-0">
                           <h4 className="text-xs font-bold text-white truncate" title={loan.cardName}>{loan.cardName} <span className="text-purple-400 font-mono">x{loan.quantity}</span></h4>
                           <p className="text-[9px] text-slate-500 truncate">Emprestado de: {loan.ownerName}</p>
@@ -313,7 +314,7 @@ export default function Loans({ currentMember }: LoansProps) {
                   {myLentCards.map(loan => (
                     <div key={loan.id} className="bg-slate-950/40 p-3 rounded-lg border border-slate-850 flex gap-2.5 items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
-                        <img src={loan.cardImageUrl} alt={loan.cardName} className="w-8 h-11 object-contain rounded" />
+                        <img src={loan.cardImageUrl} alt={loan.cardName} className="w-8 h-11 object-contain rounded" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                         <div className="min-w-0">
                           <h4 className="text-xs font-bold text-white truncate" title={loan.cardName}>{loan.cardName} <span className="text-purple-400 font-mono">x{loan.quantity}</span></h4>
                           <p className="text-[9px] text-slate-500 truncate">Com: {loan.borrowerName}</p>
