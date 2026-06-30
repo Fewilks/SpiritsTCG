@@ -54,31 +54,40 @@ export default function App() {
 
       // Retrieve Spirits roster
       const snap = await getDocs(membersCol);
-      const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
-      setMembers(list);
+      let list = snap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
+
+      const activeUid = userUid || auth.currentUser?.uid;
+
+      // Define admin emails that must be Premium ball and have admin rights
+      const adminEmails = [
+        'felipewilks@gmail.com',
+        'abner.catarino09@gmail.com',
+        'matheustadiottoa@gmail.com'
+      ];
 
       // Match the logged in user's ID
-      if (userUid) {
-        const currentUserEmail = auth.currentUser?.email?.toLowerCase() || '';
-        let matched = list.find(m => m.id === userUid);
+      if (activeUid) {
+        const currentUserEmail = auth.currentUser?.email?.toLowerCase().trim() || '';
+        const isAdminEmail = adminEmails.includes(currentUserEmail);
+        let matched = list.find(m => m.id === activeUid);
 
         // If no direct UID match, try matching by demo emails to merge accounts
         if (!matched) {
           if (currentUserEmail.includes('felipe') || currentUserEmail.includes('wilks')) {
-            matched = list.find(m => m.id === 'member-felipe' || m.nickname === 'felipewilks' || m.name.toLowerCase().includes('felipe'));
+            matched = list.find(m => m.id === 'member-felipe' || m.nickname === 'felipewilks' || (m.name || '').toLowerCase().includes('felipe'));
           } else {
             // General match by name/email handle
             const localPart = currentUserEmail.split('@')[0];
-            matched = list.find(m => m.name.toLowerCase().includes(localPart) || m.nickname?.toLowerCase() === localPart);
+            matched = list.find(m => (m.name || '').toLowerCase().includes(localPart) || m.nickname?.toLowerCase() === localPart);
           }
         }
 
         if (matched) {
           // If we mapped to a default seeded member (e.g. 'member-1'), migrate their document ID in Firestore
-          if (matched.id !== userUid) {
-            console.log(`Migrating/mapping seeded member ${matched.name} (${matched.id}) to auth UID ${userUid}`);
-            const migratedMember = { ...matched, id: userUid };
-            await setDoc(doc(db, 'members', userUid), migratedMember);
+          if (matched.id !== activeUid) {
+            console.log(`Migrating/mapping seeded member ${matched.name} (${matched.id}) to auth UID ${activeUid}`);
+            const migratedMember = { ...matched, id: activeUid };
+            await setDoc(doc(db, 'members', activeUid), migratedMember);
             
             // If the old document was the seed ID, delete the old document
             if (matched.id.startsWith('member-')) {
@@ -90,53 +99,68 @@ export default function App() {
             }
             
             matched = migratedMember;
-
-            // Refresh the roster list
-            const freshSnap = await getDocs(membersCol);
-            const freshList = freshSnap.docs.map(d => ({ id: d.id, ...d.data() } as Member));
-            setMembers(freshList);
           }
+
+          // Force admin role and ensure email is stored
+          const finalRole = isAdminEmail ? 'Premium ball' : (matched.role || 'pokeball');
+          if (matched.role !== finalRole || matched.email !== currentUserEmail) {
+            matched.role = finalRole as any;
+            matched.email = currentUserEmail;
+            await setDoc(doc(db, 'members', activeUid), { ...matched, role: finalRole, email: currentUserEmail });
+          }
+
           setCurrentMember(matched);
         } else {
           // Fallback: If no matched record yet, read individual doc or create one on the fly
-          const docRef = doc(db, 'members', userUid);
+          const docRef = doc(db, 'members', activeUid);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             const extraMember = { id: docSnap.id, ...docSnap.data() } as Member;
+            const finalRole = isAdminEmail ? 'Premium ball' : (extraMember.role || 'pokeball');
+            if (extraMember.role !== finalRole || extraMember.email !== currentUserEmail) {
+              extraMember.role = finalRole as any;
+              extraMember.email = currentUserEmail;
+              await setDoc(docRef, { ...extraMember, role: finalRole, email: currentUserEmail });
+            }
             setCurrentMember(extraMember);
-            setMembers(prev => {
-              if (!prev.find(m => m.id === userUid)) {
-                return [...prev, extraMember];
-              }
-              return prev;
-            });
           } else {
             // Create a dynamic member document for this registered/authenticated user
             const email = auth.currentUser?.email || '';
             const defaultName = auth.currentUser?.displayName || email.split('@')[0] || 'Novo Treinador';
+            const assignedRole = isAdminEmail ? 'Premium ball' : 'pokeball';
+
             const newMember: Member = {
-              id: userUid,
+              id: activeUid,
               name: defaultName,
-              role: 'pokeball',
+              role: assignedRole,
               nickname: defaultName.toLowerCase().replace(/\s+/g, ''),
               avatarSprite: 'pikachu',
               wins: 0,
               losses: 0,
               draws: 0,
+              email: email.toLowerCase().trim(),
               joinDate: new Date().toISOString().split('T')[0]
             };
             await setDoc(docRef, newMember);
             setCurrentMember(newMember);
-            setMembers(prev => {
-              if (!prev.find(m => m.id === userUid)) {
-                return [...prev, newMember];
-              }
-              return prev;
-            });
           }
         }
-      } else {
-        const defaultUser = list.find(m => m.id === 'member-felipe') || list[0] || null;
+      }
+
+      // Re-fetch clean members list and force admin roles for any matching email
+      const finalSnap = await getDocs(membersCol);
+      const finalList = finalSnap.docs.map(d => {
+        const m = { id: d.id, ...d.data() } as Member;
+        if (m.email && adminEmails.includes(m.email.toLowerCase().trim()) && m.role !== 'Premium ball') {
+          m.role = 'Premium ball';
+          setDoc(doc(db, 'members', m.id), m);
+        }
+        return m;
+      });
+      setMembers(finalList);
+
+      if (!activeUid) {
+        const defaultUser = finalList.find(m => m.id === 'member-felipe') || finalList[0] || null;
         setCurrentMember(defaultUser);
       }
     } catch (err) {
@@ -347,64 +371,14 @@ export default function App() {
             )}
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto py-12 px-4">
-            <div className="text-center space-y-3 mb-10">
-              <div className="inline-flex bg-purple-950/40 p-3 rounded-2xl border border-purple-500/20 animate-pulse mb-2">
-                <PokemonSprite name="substitute" size="lg" />
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-16 h-16 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
+              <div className="w-10 h-10 bg-purple-900/30 rounded-full flex items-center justify-center border border-purple-500/30">
+                <span className="text-xl animate-pulse">🔮</span>
               </div>
-              <h2 className="text-2xl font-black text-white tracking-tight">👻 Escolha seu Perfil de Jogador</h2>
-              <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-                Selecione o seu perfil ou simule qualquer outro mestre do elenco da Spirits para liberar todas as funções interativas do portal.
-              </p>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="fallback-member-grid">
-              {members.map((mem) => (
-                <button
-                  key={mem.id}
-                  id={`select-fallback-${mem.id}`}
-                  onClick={() => setCurrentMember(mem)}
-                  className="bg-slate-900/60 hover:bg-slate-900 border border-slate-850/80 hover:border-purple-500/40 p-4.5 rounded-2xl flex items-center gap-3.5 text-left transition-all cursor-pointer group hover:shadow-lg hover:shadow-purple-950/10"
-                >
-                  <div className="w-12 h-12 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-center shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
-                    <PokemonSprite name={mem.avatarSprite} size="sm" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-white font-extrabold text-sm truncate">{mem.nickname || mem.name}</div>
-                    <div className="text-[10px] text-slate-400 truncate mt-0.5">{mem.name}</div>
-                    <div className="mt-1">{getRoleBadge(mem.role)}</div>
-                  </div>
-                </button>
-              ))}
-
-              <button
-                id="select-fallback-create-new"
-                onClick={() => {
-                  // Fallback create action
-                  const email = auth.currentUser?.email || '';
-                  const defaultName = auth.currentUser?.displayName || email.split('@')[0] || 'Novo Treinador';
-                  const placeholderMember: Member = {
-                    id: auth.currentUser?.uid || `member-${Date.now()}`,
-                    name: defaultName,
-                    role: 'pokeball',
-                    nickname: defaultName.toLowerCase().replace(/\s+/g, ''),
-                    avatarSprite: 'pikachu',
-                    wins: 0,
-                    losses: 0,
-                    draws: 0,
-                    joinDate: new Date().toISOString().split('T')[0]
-                  };
-                  setCurrentMember(placeholderMember);
-                  setActiveTab('time');
-                }}
-                className="bg-gradient-to-br from-purple-950/20 to-slate-900 hover:from-purple-900/30 hover:to-slate-900 border border-dashed border-purple-500/30 hover:border-purple-500/60 p-4.5 rounded-2xl flex flex-col justify-center items-center gap-2 text-center transition-all cursor-pointer group min-h-[96px]"
-              >
-                <div className="w-8 h-8 rounded-full bg-purple-950/50 border border-purple-500/30 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                  +
-                </div>
-                <div className="text-white font-bold text-xs">Criar Perfil de Treinador</div>
-              </button>
-            </div>
+            <h3 className="text-white font-bold text-sm mt-6">Carregando perfil de treinador...</h3>
           </div>
         )}
       </main>
