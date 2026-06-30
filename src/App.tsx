@@ -4,6 +4,7 @@ import { db, seedDatabaseIfEmpty, membersCol, auth } from './lib/firebase';
 import { getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import Auth from './components/Auth';
+import SpiritsLogo from './components/SpiritsLogo';
 import Dashboard from './components/Dashboard';
 import Collection from './components/Collection';
 import Loans from './components/Loans';
@@ -242,22 +243,8 @@ export default function App() {
         <div className="space-y-6">
           {/* Spirits Team Branding Brand Header */}
           <div className="flex items-center gap-3 border-b border-slate-850/60 pb-5">
-            <div className="w-10 h-10 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-xl flex items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 shrink-0 overflow-hidden relative">
-              <img 
-                src="/logo-spirits.png" 
-                alt="Spirits Logo" 
-                className="w-full h-full object-contain p-1"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const parent = e.currentTarget.parentElement;
-                  if (parent && !parent.querySelector('.fallback-emoji')) {
-                    const span = document.createElement('span');
-                    span.className = 'text-2xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] fallback-emoji';
-                    span.innerText = '👻';
-                    parent.appendChild(span);
-                  }
-                }}
-              />
+            <div className="w-10 h-10 shrink-0 overflow-hidden relative" id="spirits-logo-container">
+              <SpiritsLogo className="w-full h-full" />
             </div>
             <div>
               <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-1">
