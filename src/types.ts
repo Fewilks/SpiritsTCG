@@ -9,6 +9,7 @@ export interface Member {
   draws: number;
   favoriteCard?: string;
   favoriteCardImage?: string;
+  email?: string;
   joinDate: string;
 }
 
