@@ -15,6 +15,7 @@ import {
   getDoc 
 } from 'firebase/firestore';
 import { Member } from '../types';
+import SpiritsLogo from './SpiritsLogo';
 import { 
   Sparkles, 
   Mail, 
@@ -144,22 +145,8 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         
         {/* Header Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-2xl items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 mb-4 animate-bounce overflow-hidden relative">
-            <img 
-              src="/logo-spirits.png" 
-              alt="Spirits Logo" 
-              className="w-full h-full object-contain p-2"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                const parent = e.currentTarget.parentElement;
-                if (parent && !parent.querySelector('.fallback-emoji')) {
-                  const span = document.createElement('span');
-                  span.className = 'text-3xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] fallback-emoji';
-                  span.innerText = '👻';
-                  parent.appendChild(span);
-                }
-              }}
-            />
+          <div className="inline-flex w-16 h-16 items-center justify-center mb-4 animate-bounce relative" id="spirits-logo-container-auth">
+            <SpiritsLogo className="w-full h-full" />
           </div>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase">
             SPIRITS <span className="text-purple-400 font-mono">TCG</span>
