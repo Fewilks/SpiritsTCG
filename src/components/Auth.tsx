@@ -81,16 +81,26 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         const userCred = await createUserWithEmailAndPassword(auth, email.trim(), password);
         const user = userCred.user;
 
+        const lowerEmail = email.toLowerCase().trim();
+        const isAdminEmail = [
+          'felipewilks@gmail.com',
+          'abner.catarino09@gmail.com',
+          'matheustadiottoa@gmail.com'
+        ].includes(lowerEmail);
+
+        const assignedRole = isAdminEmail ? 'Premium ball' : 'pokeball';
+
         // Create Member entry in Firestore
         const newMember: Member = {
           id: user.uid,
           name: name.trim(),
-          role: role,
+          role: assignedRole,
           nickname: nickname.trim(),
           avatarSprite: avatarSprite.trim().toLowerCase() || 'pikachu',
           wins: 0,
           losses: 0,
           draws: 0,
+          email: lowerEmail,
           joinDate: new Date().toISOString().split('T')[0]
         };
 
@@ -123,56 +133,6 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
     }
   };
 
-  // Dynamic test / demo login setup
-  const loginAsDemoUser = async (demoEmail: string, demoName: string, demoNickname: string, demoRole: any, demoAvatar: string, demoFavCard: string) => {
-    setLoading(true);
-    setError('');
-    setSuccessMsg('');
-
-    try {
-      console.log(`Attempting login as demo user: ${demoEmail}`);
-      // Try to sign in
-      try {
-        await signInWithEmailAndPassword(auth, demoEmail, 'spirits123456');
-        console.log('Demo user authenticated successfully');
-        onAuthSuccess();
-      } catch (signInErr: any) {
-        // If user doesn't exist, create them on the fly!
-        if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
-          console.log(`Demo user ${demoEmail} not found, creating dynamically...`);
-          const userCred = await createUserWithEmailAndPassword(auth, demoEmail, 'spirits123456');
-          const uid = userCred.user.uid;
-
-          // Register in members collection
-          const demoMember: Member = {
-            id: uid,
-            name: demoName,
-            role: demoRole,
-            nickname: demoNickname,
-            avatarSprite: demoAvatar,
-            wins: Math.floor(Math.random() * 30) + 15,
-            losses: Math.floor(Math.random() * 15) + 5,
-            draws: Math.floor(Math.random() * 6),
-            favoriteCard: demoFavCard,
-            favoriteCardImage: 'https://images.pokemontcg.io/sv3/125_hires.png',
-            joinDate: '2025-01-10'
-          };
-
-          await setDoc(doc(db, 'members', uid), demoMember);
-          console.log('Demo user registered and seeded');
-          onAuthSuccess();
-        } else {
-          throw signInErr;
-        }
-      }
-    } catch (err: any) {
-      console.error('Demo Login Error:', err);
-      setError('Falha ao autenticar usuário demo: ' + (err.message || err.code));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 md:p-8 relative overflow-hidden" id="auth-screen">
       
@@ -184,8 +144,22 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
         
         {/* Header Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex w-16 h-16 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-2xl items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 mb-4 animate-bounce">
-            <span className="text-4xl">👻</span>
+          <div className="inline-flex w-16 h-16 bg-gradient-to-tr from-purple-650 to-indigo-650 rounded-2xl items-center justify-center shadow-lg shadow-purple-950/50 border border-purple-400/20 mb-4 animate-bounce overflow-hidden relative">
+            <img 
+              src="/logo-spirits.png" 
+              alt="Spirits Logo" 
+              className="w-full h-full object-contain p-2"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const parent = e.currentTarget.parentElement;
+                if (parent && !parent.querySelector('.fallback-emoji')) {
+                  const span = document.createElement('span');
+                  span.className = 'text-3xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] fallback-emoji';
+                  span.innerText = '👻';
+                  parent.appendChild(span);
+                }
+              }}
+            />
           </div>
           <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase">
             SPIRITS <span className="text-purple-400 font-mono">TCG</span>
@@ -271,18 +245,9 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Cargo na Spirits (Bola)</label>
-                  <select 
-                    id="register-role"
-                    value={role}
-                    onChange={(e: any) => setRole(e.target.value)}
-                    className="w-full bg-slate-950/50 border border-slate-800 focus:border-purple-500/50 rounded-xl py-2.5 px-3 text-xs font-medium text-white focus:outline-none transition-colors cursor-pointer"
-                  >
-                    <option value="pokeball">🔴 Pokeball</option>
-                    <option value="greatball">🔵 Greatball</option>
-                    <option value="ultraball">⚫ Ultraball</option>
-                    <option value="masterball">🟣 Masterball</option>
-                    <option value="Premium ball">✨ Premium ball (Staff)</option>
-                  </select>
+                  <div className="w-full bg-slate-950/50 border border-slate-800 rounded-xl py-2.5 px-3 text-xs font-semibold text-slate-300">
+                    🔴 Level Pokéball (Default)
+                  </div>
                 </div>
 
                 <div>
@@ -369,64 +334,6 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
             )}
           </button>
         </form>
-
-        {/* DEMO / TESTING BYPASS ACCOUNTS (Extremely helpful visual helper) */}
-        <div className="mt-8 border-t border-slate-850/80 pt-6">
-          <div className="flex items-center gap-2 text-slate-400 mb-4 justify-center">
-            <Users className="w-4 h-4 text-purple-400" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Acesso Rápido para Avaliação (Demo)</span>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              id="demo-login-guilherme"
-              onClick={() => loginAsDemoUser(
-                'guilherme@spirits.com', 
-                'Guilherme Silva', 
-                'SpiritsBoss', 
-                'Premium ball', 
-                'gengar-gmax', 
-                'Charizard ex'
-              )}
-              className="flex items-center gap-3 bg-slate-950/40 hover:bg-slate-950 p-2.5 rounded-xl border border-slate-850/80 hover:border-purple-500/30 transition-all text-left text-xs cursor-pointer group"
-            >
-              <div className="w-8 h-8 bg-purple-950/30 rounded-lg flex items-center justify-center overflow-hidden border border-purple-550/20 group-hover:border-purple-500/40">
-                <PokemonSprite name="gengar-gmax" size="sm" className="w-6 h-6" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[9px] text-purple-400 font-mono font-bold">PREMIUM BALL</div>
-                <div className="font-extrabold text-white truncate">Guilherme Silva</div>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              id="demo-login-thiago"
-              onClick={() => loginAsDemoUser(
-                'thiago@spirits.com', 
-                'Thiago Pereira', 
-                'ThunderBolt', 
-                'masterball', 
-                'pikachu', 
-                'Miraidon ex'
-              )}
-              className="flex items-center gap-3 bg-slate-950/40 hover:bg-slate-950 p-2.5 rounded-xl border border-slate-850/80 hover:border-purple-500/30 transition-all text-left text-xs cursor-pointer group"
-            >
-              <div className="w-8 h-8 bg-purple-950/30 rounded-lg flex items-center justify-center overflow-hidden border border-purple-550/20 group-hover:border-purple-500/40">
-                <PokemonSprite name="pikachu" size="sm" className="w-6 h-6 animate-pulse" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[9px] text-purple-400 font-mono font-bold">MASTERBALL</div>
-                <div className="font-extrabold text-white truncate">Thiago Pereira</div>
-              </div>
-            </button>
-          </div>
-          
-          <p className="text-[10px] text-slate-500 text-center mt-3.5">
-            Ao clicar nos botões de demo, o sistema cria e configura automaticamente as contas oficiais de simulação utilizando o Firebase Auth e Firestore.
-          </p>
-        </div>
 
       </div>
     </div>
