@@ -383,6 +383,7 @@ export default function Collection({ currentMember }: CollectionProps) {
                   alt={card.name} 
                   className="max-h-full max-w-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.7)] group-hover:scale-105 transition-transform duration-300" 
                   referrerPolicy="no-referrer"
+                  onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
                 />
                 <div className="absolute top-2.5 right-2.5 bg-purple-600 text-white font-black text-xs px-2.5 py-1 rounded-lg shadow-lg border border-purple-400/20 font-mono">
                   x{card.quantity}
@@ -505,6 +506,7 @@ export default function Collection({ currentMember }: CollectionProps) {
                       alt={selectedCard.name} 
                       className="max-h-64 object-contain rounded-lg drop-shadow-lg" 
                       referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
                     />
                   </div>
                   <div className="flex-1 space-y-6">
@@ -562,6 +564,7 @@ export default function Collection({ currentMember }: CollectionProps) {
                                 alt={card.name} 
                                 className="max-h-full max-w-full object-contain drop-shadow-md group-hover:scale-105 transition-transform" 
                                 referrerPolicy="no-referrer"
+                                onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
                               />
                             </div>
                             <div>
