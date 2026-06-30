@@ -65,9 +65,9 @@ export default function PokemonSprite({ name, className = '', size = 'md' }: Pok
   return (
     <div className={`flex items-center justify-center overflow-hidden shrink-0 ${sizeClasses[size]} ${className}`}>
       <img
-        id={`sprite-${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+        id={`sprite-${(name || '').toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
         src={src}
-        alt={name}
+        alt={name || 'sprite'}
         className="max-w-full max-h-full object-contain filter drop-shadow-[0_2px_4px_rgba(139,92,246,0.3)] transition-transform duration-300 hover:scale-115"
         onError={handleImgError}
         referrerPolicy="no-referrer"
