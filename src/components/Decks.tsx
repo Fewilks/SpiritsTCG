@@ -549,7 +549,7 @@ export default function Decks({ currentMember }: DecksProps) {
                       <div className="space-y-2">
                         {getGroupedCards(activeDeck).pokemon.map((card, idx) => (
                           <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-purple-500/20 group relative">
-                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             <div className="min-w-0">
                               <div className="text-white font-bold text-xs truncate">{card.name}</div>
                               <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
@@ -560,7 +560,7 @@ export default function Decks({ currentMember }: DecksProps) {
 
                             {/* Hover card zoom portal preview */}
                             <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-purple-500/40 w-44">
-                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             </div>
                           </div>
                         ))}
@@ -575,7 +575,7 @@ export default function Decks({ currentMember }: DecksProps) {
                       <div className="space-y-2">
                         {getGroupedCards(activeDeck).trainers.map((card, idx) => (
                           <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-indigo-500/20 group relative">
-                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             <div className="min-w-0">
                               <div className="text-white font-bold text-xs truncate">{card.name}</div>
                               <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
@@ -586,7 +586,7 @@ export default function Decks({ currentMember }: DecksProps) {
 
                             {/* Hover card zoom portal preview */}
                             <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-indigo-500/40 w-44">
-                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             </div>
                           </div>
                         ))}
@@ -601,7 +601,7 @@ export default function Decks({ currentMember }: DecksProps) {
                       <div className="space-y-2">
                         {getGroupedCards(activeDeck).energies.map((card, idx) => (
                           <div key={idx} className="flex items-center gap-2 bg-slate-950/40 p-2 rounded-lg border border-slate-850 hover:border-amber-500/20 group relative">
-                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" />
+                            <img src={card.imageUrl} alt={card.name} className="w-8 h-11 object-contain rounded shrink-0" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             <div className="min-w-0">
                               <div className="text-white font-bold text-xs truncate">{card.name}</div>
                               <div className="text-[9px] text-slate-500 font-mono">{card.set} {card.number}</div>
@@ -612,7 +612,7 @@ export default function Decks({ currentMember }: DecksProps) {
 
                             {/* Hover card zoom portal preview */}
                             <div className="absolute left-1/2 bottom-full mb-2 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-35 bg-slate-950 p-1 rounded-xl shadow-2xl border border-amber-500/40 w-44">
-                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" />
+                              <img src={card.imageUrl} alt={card.name} className="w-full rounded-lg" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                             </div>
                           </div>
                         ))}
@@ -689,6 +689,7 @@ export default function Decks({ currentMember }: DecksProps) {
                           alt={deck.name} 
                           className="w-12 h-16 object-contain drop-shadow-md rounded group-hover:scale-105 transition-transform" 
                           referrerPolicy="no-referrer"
+                          onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
                         />
                         <div>
                           <h3 className="text-white font-extrabold text-base leading-snug">{deck.name}</h3>
