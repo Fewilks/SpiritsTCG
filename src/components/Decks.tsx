@@ -62,6 +62,95 @@ export default function Decks({ currentMember }: DecksProps) {
     'Outro'
   ];
 
+  // Helper to map set codes to pokemontcg.io IDs
+  function mapSetCodeToTcgIo(setCode: string): string {
+    const s = (setCode || '').toLowerCase();
+    const maps: Record<string, string> = {
+      ssp: 'sv8',
+      scr: 'sv7',
+      sfa: 'sv6a',
+      twm: 'sv6',
+      tef: 'sv5',
+      saf: 'sv5a',
+      paf: 'sv4a',
+      par: 'sv4',
+      obf: 'sv3',
+      sv1: 'sv1',
+      sv2: 'sv2',
+      sv3: 'sv3',
+      sv4: 'sv4',
+      sv5: 'sv5',
+      sv6: 'sv6',
+      sv7: 'sv7',
+      sv8: 'sv8',
+      sit: 'sit',
+      lor: 'lor',
+      pgo: 'pgo',
+      asr: 'asr',
+      brs: 'brs',
+      fus: 'fus',
+      cel: 'cel',
+      cre: 'cre',
+      bst: 'bst',
+      shf: 'shf',
+      viv: 'viv',
+      daa: 'daa',
+      rca: 'rca',
+      ssh: 'ssh'
+    };
+    return maps[s] || s;
+  }
+
+  // ----------------------------------------------
+  // Parser local para listas de exportação do PTCG Live
+  // ----------------------------------------------
+  function parseDeckLocally(rawText: string): ParsedDeckCard[] {
+    const lines = rawText.split('\n');
+    const cards: ParsedDeckCard[] = [];
+    // Regex para linhas típicas: "3 Charizard ex OBF 125" ou "6 Basic Fire Energy SVE 2"
+    const lineRegex = /^(\d+)\s+(.+?)\s+([A-Z]{2,4})\s+(\d+)/;
+    // Tenta capturar também energias básicas (ex.: "Basic Fire Energy")
+    const energyRegex = /^(\d+)\s+(Basic\s+\w+\s+Energy)\s+([A-Z]{2,4})\s+(\d+)/i;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      
+      let match = energyRegex.exec(trimmed) || lineRegex.exec(trimmed);
+      if (match) {
+        const count = parseInt(match[1], 10);
+        const name = match[2].trim();
+        const set = match[3].toUpperCase();
+        const number = match[4].padStart(3, '0'); // garante formato com 3 dígitos
+        const mappedSet = mapSetCodeToTcgIo(set);
+        const imageUrl = `https://images.pokemontcg.io/${mappedSet}/${number}.png`;
+        
+        // Determina o tipo (Pokémon, Treinador, Energia) com base no nome
+        let type: 'Pokémon' | 'Treinador' | 'Energia' = 'Pokémon';
+        if (name.toLowerCase().includes('energy') || name.toLowerCase().includes('energia')) {
+          type = 'Energia';
+        } else {
+          // Lista de palavras-chave de cartas de treinador comuns (pode ser expandida)
+          const trainerKeywords = [
+            'Iono', 'Arven', "Boss's Orders", 'Professor', 'Ultra Ball', 'Rare Candy',
+            'Buddy-Buddy Poffin', 'Super Rod', 'Counter Catcher', 'Prime Catcher',
+            'Forest Seal Stone', 'Earthen Vessel', 'Nest Ball', 'Trekking Shoes',
+            'Pokégear', 'Night Stretcher', 'Lost Vacuum', 'Pal Pad', 'Bravery Charm',
+            'Defiance Band', 'Technical Machine', 'Area Zero Underdepths', 'PokéStop',
+            'Sparking Crystal', 'Electric Generator', 'Gravity Mountain', 'Energy Switch',
+            'Superior Energy Retrieval', 'Squawkabilly'
+          ];
+          if (trainerKeywords.some(kw => name.includes(kw))) {
+            type = 'Treinador';
+          }
+        }
+        cards.push({ name, set, number, count, type, imageUrl });
+      }
+      // Linhas que não correspondem (cabeçalhos, etc.) são ignoradas
+    }
+    return cards;
+  }
+
   useEffect(() => {
     async function loadDecks() {
       try {
@@ -82,15 +171,29 @@ export default function Decks({ currentMember }: DecksProps) {
   // Load Limitless meta decks from backend API with fallback
   useEffect(() => {
     async function loadMetaDecks() {
+      if (activeTab !== 'meta') return;
       try {
         setLoadingMeta(true);
+        
+        // Em produção (GitHub Pages) pula a API e usa dados locais
+        if (import.meta.env.PROD) {
+          const sortedFallback = [...fallbackMetaDecks].sort((a: any, b: any) => {
+            const dateA = a.updatedAt || '2023-01-01';
+            const dateB = b.updatedAt || '2023-01-01';
+            if (dateB !== dateA) return dateB.localeCompare(dateA);
+            return b.share - a.share;
+          });
+          setMetaDecks(sortedFallback);
+          setTournamentName('Standard format meta (Local)');
+          return;
+        }
+
         const res = await fetch('/api/pokemon/meta');
         if (res.ok) {
           const data = await res.json();
           const decksList = data.decks || (Array.isArray(data) ? data : []);
           const tName = data.tournamentName || 'Standard format meta';
           
-          // Sort by date descending
           const sorted = decksList.sort((a: any, b: any) => {
             const dateA = a.updatedAt || '2023-01-01';
             const dateB = b.updatedAt || '2023-01-01';
@@ -103,8 +206,7 @@ export default function Decks({ currentMember }: DecksProps) {
           throw new Error('Retornou status ' + res.status);
         }
       } catch (err) {
-        console.error('Error loading meta decks from API, using fallback:', err);
-        // Fallback to our robust local list, sorted by date descending
+        console.error('Error loading meta decks, using fallback:', err);
         const sortedFallback = [...fallbackMetaDecks].sort((a: any, b: any) => {
           const dateA = a.updatedAt || '2023-01-01';
           const dateB = b.updatedAt || '2023-01-01';
@@ -112,11 +214,12 @@ export default function Decks({ currentMember }: DecksProps) {
           return b.share - a.share;
         });
         setMetaDecks(sortedFallback);
-        setTournamentName('Standard format meta (Local Database / Fallback)');
+        setTournamentName('Standard format meta (Local Fallback)');
       } finally {
         setLoadingMeta(false);
       }
     }
+
     if (activeTab === 'meta') {
       loadMetaDecks();
     }
@@ -136,18 +239,22 @@ export default function Decks({ currentMember }: DecksProps) {
     try {
       setParsing(true);
       
-      // Parse list to visual structure with backend Gemini endpoint
-      const res = await fetch('/api/pokemon/parse-deck', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deckText: metaDeck.rawList })
-      });
-
-      if (!res.ok) {
-        throw new Error('Falha no analisador backend');
+      let parsedCards: ParsedDeckCard[];
+      if (import.meta.env.PROD) {
+        // Usa parser local em produção
+        parsedCards = parseDeckLocally(metaDeck.rawList);
+        if (parsedCards.length === 0) throw new Error('Falha no parser local');
+      } else {
+        const res = await fetch('/api/pokemon/parse-deck', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deckText: metaDeck.rawList })
+        });
+        if (!res.ok) {
+          throw new Error('Falha no analisador backend');
+        }
+        parsedCards = await res.json();
       }
-
-      const parsedCards: ParsedDeckCard[] = await res.json();
       
       const newDeck: Omit<DeckRecord, 'id'> = {
         userId: currentMember.id,
@@ -163,13 +270,12 @@ export default function Decks({ currentMember }: DecksProps) {
       const importedRecord = { id: docRef.id, ...newDeck } as DeckRecord;
       setDecks(prev => [importedRecord, ...prev]);
       
-      // Switch back to "my" tab and focus the imported deck for visual analysis
       setActiveTab('my');
       setActiveDeck(importedRecord);
       alert(`O deck "${metaDeck.name}" foi importado com sucesso para a lista de decks do time!`);
     } catch (err) {
       console.error('Error importing meta deck:', err);
-      alert('Erro ao importar o meta deck com inteligência artificial.');
+      alert('Erro ao importar o meta deck.');
     } finally {
       setParsing(false);
     }
@@ -185,23 +291,26 @@ export default function Decks({ currentMember }: DecksProps) {
     try {
       setParsing(true);
       
-      const res = await fetch('/api/pokemon/parse-deck', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deckText: rawText })
-      });
-
-      if (!res.ok) {
-        throw new Error('Falha no analisador backend');
+      let parsedCards: ParsedDeckCard[];
+      if (import.meta.env.PROD) {
+        // Usa parser local em produção
+        parsedCards = parseDeckLocally(rawText);
+        if (parsedCards.length === 0) {
+          alert('Não foi possível extrair nenhuma carta da lista colada. Verifique o formato!');
+          return;
+        }
+      } else {
+        const res = await fetch('/api/pokemon/parse-deck', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deckText: rawText })
+        });
+        if (!res.ok) {
+          throw new Error('Falha no analisador backend');
+        }
+        parsedCards = await res.json();
       }
-
-      const parsedCards: ParsedDeckCard[] = await res.json();
       
-      if (parsedCards.length === 0) {
-        alert('Não foi possível extrair nenhuma carta da lista colada. Verifique o formato!');
-        return;
-      }
-
       const newDeck: Omit<DeckRecord, 'id'> = {
         userId: currentMember.id,
         userName: currentMember.name,
@@ -221,7 +330,7 @@ export default function Decks({ currentMember }: DecksProps) {
       alert('Deck analisado e cadastrado com sucesso!');
     } catch (err) {
       console.error('Error importing deck:', err);
-      alert('Erro ao analisar deck. O serviço pode estar indisponível ou a lista possui um formato inválido.');
+      alert('Erro ao analisar deck.');
     } finally {
       setParsing(false);
     }
