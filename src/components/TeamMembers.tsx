@@ -413,7 +413,7 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
                     <Heart className="w-4 h-4 text-rose-500 shrink-0" />
                     <span className="text-slate-400">Favorito: <strong className="text-slate-300">{mem.favoriteCard}</strong></span>
                     {mem.favoriteCardImage && (
-                      <img src={mem.favoriteCardImage} alt={mem.favoriteCard} className="w-5 h-7 object-contain ml-auto rounded" />
+                      <img src={mem.favoriteCardImage} alt={mem.favoriteCard} className="w-5 h-7 object-contain ml-auto rounded" onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }} />
                     )}
                   </div>
                 )}
