@@ -31,8 +31,13 @@ export default function TeamMembers({ currentMember, setCurrentMember, onMemberU
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Permission check
-  const hasStaffPermission = currentMember.role === 'Premium ball' || currentUserEmail === 'felipewilks@gmail.com';
+  // Permission check - strictly restricted to the 3 master admin emails
+  const adminEmails = [
+    'felipewilks@gmail.com',
+    'abner.catarino09@gmail.com',
+    'matheustadiottoa@gmail.com'
+  ];
+  const hasStaffPermission = adminEmails.includes((currentUserEmail || '').toLowerCase().trim());
 
   // Form modals state
   const [showAddModal, setShowAddModal] = useState(false);
