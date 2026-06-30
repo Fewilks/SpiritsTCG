@@ -25,7 +25,7 @@ export default function RoleLock({ currentMember, requiredRole, featureName, onG
   };
 
   return (
-    <div className="max-w-xl mx-auto py-16 px-6 text-center" id={`role-lock-${featureName.toLowerCase().replace(/\s+/g, '-')}`}>
+    <div className="max-w-xl mx-auto py-16 px-6 text-center" id={`role-lock-${(featureName || '').toLowerCase().replace(/\s+/g, '-')}`}>
       
       {/* Decorative Lock and Pokémon Shield */}
       <div className="relative inline-flex items-center justify-center mb-8">
