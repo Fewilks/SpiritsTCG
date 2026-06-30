@@ -322,7 +322,12 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
                 return (
                   <div key={loan.id} className="py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                      <img src={loan.cardImageUrl} alt={loan.cardName} className="w-10 h-14 object-contain rounded border border-slate-800" />
+                      <img 
+                        src={loan.cardImageUrl} 
+                        alt={loan.cardName} 
+                        className="w-10 h-14 object-contain rounded border border-slate-800" 
+                        onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
+                      />
                       <div>
                         <div className="text-white font-extrabold text-sm">{loan.cardName} <span className="text-purple-400 font-mono text-xs">(x{loan.quantity})</span></div>
                         <div className="text-xs text-slate-400 mt-0.5">
@@ -468,7 +473,12 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
             <div className="space-y-3">
               {metaDecks.map((deck, idx) => (
                 <div key={`${deck.name}-${idx}`} className="flex gap-3 bg-slate-950/30 p-3 rounded-xl border border-slate-850 hover:border-purple-500/10 transition-all">
-                  <img src={deck.imageUrl} alt={deck.name} className="w-10 h-14 object-contain rounded shrink-0 drop-shadow-md" />
+                  <img 
+                    src={deck.imageUrl} 
+                    alt={deck.name} 
+                    className="w-10 h-14 object-contain rounded shrink-0 drop-shadow-md" 
+                    onError={(e) => { e.currentTarget.src = 'https://images.pokemontcg.io/base1/99.png'; }}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start gap-1">
                       <span className="text-white font-extrabold text-xs truncate">{deck.name}</span>
