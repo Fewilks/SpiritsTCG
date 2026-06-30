@@ -22,6 +22,7 @@ import {
 interface DashboardProps {
   currentMember: Member;
   setActiveTab: (tab: string) => void;
+  onStatsHealed?: () => void;
 }
 
 export default function Dashboard({ currentMember, setActiveTab }: DashboardProps) {
@@ -122,25 +123,37 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
         );
         setPendingLoans(relevantLoans);
 
-        // 4. Fetch Meta Decks from our backend API with fallback
+        // 4. Fetch Meta Decks – em produção usa fallback local, sem chamar a API
         try {
-          const res = await fetch('/api/pokemon/meta');
-          if (res.ok) {
-            const metaData = await res.json();
-            const decksList = metaData.decks || (Array.isArray(metaData) ? metaData : []);
-            const tName = metaData.tournamentName || 'Standard format meta';
-            
-            // Sort by date descending
-            const sorted = decksList.sort((a: any, b: any) => {
+          if (import.meta.env.PROD) {
+            // GitHub Pages: dados locais
+            const sortedFallback = [...fallbackMetaDecks].sort((a: any, b: any) => {
               const dateA = a.updatedAt || '2023-01-01';
               const dateB = b.updatedAt || '2023-01-01';
               if (dateB !== dateA) return dateB.localeCompare(dateA);
               return b.share - a.share;
             });
-            setMetaDecks(sorted);
-            setTournamentName(tName);
+            setMetaDecks(sortedFallback);
+            setTournamentName('Standard format meta (Local)');
           } else {
-            throw new Error('Retornou status ' + res.status);
+            // Desenvolvimento: tenta buscar da API local
+            const res = await fetch('/api/pokemon/meta');
+            if (res.ok) {
+              const metaData = await res.json();
+              const decksList = metaData.decks || (Array.isArray(metaData) ? metaData : []);
+              const tName = metaData.tournamentName || 'Standard format meta';
+              
+              const sorted = decksList.sort((a: any, b: any) => {
+                const dateA = a.updatedAt || '2023-01-01';
+                const dateB = b.updatedAt || '2023-01-01';
+                if (dateB !== dateA) return dateB.localeCompare(dateA);
+                return b.share - a.share;
+              });
+              setMetaDecks(sorted);
+              setTournamentName(tName);
+            } else {
+              throw new Error('Retornou status ' + res.status);
+            }
           }
         } catch (apiErr) {
           console.error('Error fetching meta from API, using fallback:', apiErr);
@@ -151,7 +164,7 @@ export default function Dashboard({ currentMember, setActiveTab }: DashboardProp
             return b.share - a.share;
           });
           setMetaDecks(sortedFallback);
-          setTournamentName('Standard format meta (Local Database / Fallback)');
+          setTournamentName('Standard format meta (Local Fallback)');
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
